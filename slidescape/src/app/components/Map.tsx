@@ -44,6 +44,8 @@ export default function MapView({
   const [isHovered, setIsHovered] = useState(false);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [year, setYear] = useState(2000); 
+  const [showSlider, setShowSlider] = useState(true);
+
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -75,6 +77,7 @@ export default function MapView({
 
   const handleAmazonClick = () => {
     console.log('Amazon Rainforest clicked!');
+    setShowSlider(true);
     if (mapInstance) {
       const bounds = new google.maps.LatLngBounds();
       amazonRainforestCoords.forEach((coord) => {
@@ -115,6 +118,7 @@ export default function MapView({
         />
       </GoogleMap>
 
+      {showSlider && (
       <div className="absolute bottom-10 left-1/9 transform -translate-x-1/2 w-[320px] z-50 bg-black/60 p-4 rounded-xl shadow-lg border border-gray-700">
         <div className="flex justify-between items-center text-white text-sm mb-2">
           <span>Year</span>
@@ -142,7 +146,7 @@ export default function MapView({
             background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(year - 1970) / (2025 - 1970) * 100}%, #2e2e2e ${(year - 1970) / (2025 - 1970) * 100}%, #2e2e2e 100%)`,
           }}
         />
-      </div>
+      </div>)}
     </div>
   );
 }
