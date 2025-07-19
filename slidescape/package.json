@@ -9,9 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroui/react": "^2.8.1",
     "@react-google-maps/api": "^2.20.7",
     "@types/google.maps": "^3.58.1",
     "next": "15.4.1",
+    "rc-slider": "^11.1.8",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
