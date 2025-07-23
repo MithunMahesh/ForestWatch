@@ -1,8 +1,9 @@
 'use client';
 
-import { GoogleMap, useJsApiLoader, Polygon } from '@react-google-maps/api';
-import { useCallback, useState } from 'react';
+import { GoogleMap, useJsApiLoader, Polygon, GroundOverlay } from '@react-google-maps/api';
+import { useCallback, useState} from 'react';
 import type { Libraries } from '@react-google-maps/api';
+
 
 const containerStyle = {
   width: '100%',
@@ -11,7 +12,7 @@ const containerStyle = {
 
 const defaultCenter = {
   lat: 0,
-  lng: -30,
+  lng: 40,
 };
 
 const libraries: Libraries = ['places'];
@@ -43,9 +44,7 @@ export default function MapView({
 }: MapViewProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
-  const [year, setYear] = useState(2000); 
-  const [showSlider, setShowSlider] = useState(true);
-
+  const [year, setYear] = useState(2008);
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -56,16 +55,28 @@ export default function MapView({
     setMapInstance(map);
   }, []);
 
-  const mapOptions = useCallback(
-    () => ({
-      tilt: 45,
-      fullscreenControl: false,
-      streetViewControl: false,
-      mapTypeControl: false,
-      mapTypeId: 'satellite' as const,
-    }),
-    []
-  );
+  const mapOptions = useCallback(() => ({
+    tilt: 45,
+    fullscreenControl: false,
+    streetViewControl: false,
+    mapTypeControl: false,
+    mapTypeId: 'satellite' as const,
+    minZoom: 3,
+    maxZoom: 4,
+    restriction: {
+      latLngBounds: {
+        north: 80,
+        south: -60,
+        west: -179.9, // prevent wrapping
+        east: 151
+      },
+
+    },
+    gestureHandling: 'greedy',
+  }), []);
+
+
+  
 
   const amazonPolygonOptions = {
     fillColor: isHovered ? '#ff590040' : '#ff7b0020',
@@ -75,29 +86,7 @@ export default function MapView({
     strokeWeight: 2,
   };
 
-  const handleAmazonClick = () => {
-    console.log('Amazon Rainforest clicked!');
-    setShowSlider(true);
-    if (mapInstance) {
-      const bounds = new google.maps.LatLngBounds();
-      amazonRainforestCoords.forEach((coord) => {
-        bounds.extend(new google.maps.LatLng(coord.lat, coord.lng));
-      });
-
-      mapInstance.fitBounds(bounds);
-      setTimeout(() => {
-        const currentZoom = mapInstance.getZoom();
-        if (currentZoom) {
-          mapInstance.setZoom(currentZoom + 1);
-        }
-      }, 100);
-    }
-  };
-
-  const handleAmazonMouseOver = () => setIsHovered(true);
-  const handleAmazonMouseOut = () => setIsHovered(false);
-
-  if (loadError) return <div>Map failed to load</div>;
+  if (loadError) return <div>Map failed to load 😢</div>;
   if (!isLoaded) return <div>Loading map...</div>;
 
   return (
@@ -112,21 +101,42 @@ export default function MapView({
         <Polygon
           paths={amazonRainforestCoords}
           options={amazonPolygonOptions}
-          onClick={handleAmazonClick}
-          onMouseOver={handleAmazonMouseOver}
-          onMouseOut={handleAmazonMouseOut}
+          onMouseOver={() => setIsHovered(true)}
+          onMouseOut={() => setIsHovered(false)}
+        />
+
+        {/* Overlay 4 world regions for full_map_2008 */}
+        <GroundOverlay
+          url="/forest-images/full_map_2008_NW.png"
+          bounds={{ north: 80, south: 0, west: -180, east: 0 }}
+          opacity={1}
+        />
+        <GroundOverlay
+          url="/forest-images/full_map_2008_NE.png"
+          bounds={{ north: 80, south: 0, west: 0, east: 180 }}
+          opacity={1}
+        />
+        <GroundOverlay
+          url="/forest-images/full_map_2008_SW.png"
+          bounds={{ north: 0, south: -60, west: -180, east: 0 }}
+          opacity={1}
+        />
+        <GroundOverlay
+          url="/forest-images/full_map_2008_SE.png"
+          bounds={{ north: 0, south: -60, west: 0, east: 180 }}
+          opacity={1}
         />
       </GoogleMap>
 
-      {showSlider && (
-      <div className="absolute bottom-10 left-1/9 transform -translate-x-1/2 w-[320px] z-50 bg-black/60 p-4 rounded-xl shadow-lg border border-gray-700">
+      {/* Optional year slider UI */}
+      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-[320px] z-50 bg-black/60 p-4 rounded-xl shadow-lg border border-gray-700">
         <div className="flex justify-between items-center text-white text-sm mb-2">
           <span>Year</span>
           <span className="font-mono">{year}</span>
         </div>
         <input
           type="range"
-          min={1970}
+          min={2000}
           max={2025}
           step={1}
           value={year}
@@ -143,10 +153,10 @@ export default function MapView({
                     [&::-webkit-slider-thumb]:shadow-md
                     [&::-moz-range-thumb]:appearance-none"
           style={{
-            background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(year - 1970) / (2025 - 1970) * 100}%, #2e2e2e ${(year - 1970) / (2025 - 1970) * 100}%, #2e2e2e 100%)`,
+            background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(year - 2000) / (2025 - 2000) * 100}%, #2e2e2e ${(year - 2000) / (2025 - 2000) * 100}%, #2e2e2e 100%)`,
           }}
         />
-      </div>)}
+      </div>
     </div>
   );
 }

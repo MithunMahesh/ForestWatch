@@ -5,9 +5,10 @@ import { join } from 'path';
 
 let initialized = false;
 
-// load and authenticate Earth Engine
+// ✅ Lazy-load and authenticate Earth Engine
 async function initEarthEngine() {
   if (!initialized) {
+    console.log('Initializing Earth Engine...');
     
     try {
       const privateKey = JSON.parse(
@@ -18,10 +19,12 @@ async function initEarthEngine() {
         ee.data.authenticateViaPrivateKey(
           privateKey,
           () => {
+            console.log('Authentication successful');
             ee.initialize(
               null,
               null,
               () => {
+                console.log('Earth Engine initialized');
                 initialized = true;
                 resolve(null);
               },
@@ -58,85 +61,65 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    console.log('Step 1: Initializing Earth Engine...');
     await initEarthEngine();
+    console.log('Step 1: ✅ Earth Engine initialized');
 
-    const start = `${year}-01-01`;
-    const end = `${year}-12-31`;
+    console.log('Step 2: Loading Hansen Global Forest Change dataset...');
+    
+    // ✅ Hansen Global Forest Change dataset
+    const dataset = ee.Image('UMD/hansen/global_forest_change_2024_v1_12');
+    console.log('Step 2: ✅ Hansen dataset loaded');
 
-    console.log(`Fetching data from ${start} to ${end}`);
+    // ✅ Amazon region coordinates (you can change this back to Texas if needed)
+    const region = ee.Geometry.Rectangle([-75, -15, -45, 5]); // Amazon
+    console.log('Step 3: ✅ Region defined');
 
-    // ✅ Updated dataset selection with better coverage
-    let dataset: string;
-    if (yearNum >= 2013) {
-      dataset = 'LANDSAT/LC08/C02/T1_L2'; // Landsat 8 Collection 2 Level 2
-    } else if (yearNum >= 1999) {
-      dataset = 'LANDSAT/LE07/C02/T1_L2'; // Landsat 7 Collection 2 Level 2
-    } else {
-      dataset = 'LANDSAT/LT05/C02/T1_L2'; // Landsat 5 Collection 2 Level 2
-    }
+    // ✅ Create forest loss mask for specific year
+    const lossYear = dataset.select('lossyear');
+    const targetYear = yearNum - 2000; // Hansen uses 0-24 for years 2000-2024
+    
+    console.log(`Step 4: Creating forest visualization for year ${yearNum} (Hansen year: ${targetYear})`);
 
-    console.log(`Using dataset: ${dataset}`);
-
-    // ✅ Amazon region coordinates
-    const region = ee.Geometry.Rectangle([-75, -15, -45, 5]);
-
-    const collection = ee.ImageCollection(dataset)
-      .filterDate(start, end)
-      .filterBounds(region)
-      .filter(ee.Filter.lt('CLOUD_COVER', 20)); // Filter out very cloudy images
-
-    console.log('Getting collection size...');
-    const size = await new Promise<number>((resolve, reject) => {
-      collection.size().getInfo((result: number, error: any) => {
-        if (error) {
-          console.error('Error getting collection size:', error);
-          reject(error);
-        } else {
-          console.log(`Collection size: ${result}`);
-          resolve(result);
-        }
-      });
-    });
-
-    if (size === 0) {
-      console.log('No images found for the specified criteria');
-      return new Response(
-        JSON.stringify({
-          year,
-          thumbnail: null,
-          message: 'No satellite imagery found for this year.',
-        }),
-        { 
-          status: 404,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    console.log('Creating mosaic...');
-    const image = collection.median(); // Use median instead of mosaic for better cloud removal
-
-    // ✅ Updated visualization parameters for Collection 2 Level 2
+    // ✅ Create different visualizations based on what you want to show
+    let image: any;
     let visParams: any;
-    if (yearNum >= 2013) {
-      // Landsat 8/9 bands
+
+    if (yearNum === 2000) {
+      // Show original tree cover for year 2000
+      image = dataset.select('treecover2000');
       visParams = {
-        bands: ['SR_B4', 'SR_B3', 'SR_B2'], // Red, Green, Blue
-        min: 7000,
-        max: 12000,
-        gamma: 1.4
+        min: 0,
+        max: 100,
+        palette: ['black', 'darkgreen', 'green', 'lightgreen']
       };
     } else {
-      // Landsat 5/7 bands
+      // Show forest loss up to the selected year
+      const lossMask = lossYear.lte(targetYear).and(lossYear.gt(0));
+      const treeCover = dataset.select('treecover2000');
+      
+      // Create a composite: green for remaining forest, red for lost forest
+      const remainingForest = treeCover.updateMask(lossMask.not());
+      const lostForest = treeCover.updateMask(lossMask);
+      
+      // Combine both layers
+      image = ee.Image.cat([
+        lostForest.rename('red'),
+        remainingForest.rename('green'),
+        ee.Image.constant(0).rename('blue')
+      ]);
+      
       visParams = {
-        bands: ['SR_B3', 'SR_B2', 'SR_B1'], // Red, Green, Blue
-        min: 7000,
-        max: 12000,
-        gamma: 1.4
+        bands: ['red', 'green', 'blue'],
+        min: 0,
+        max: 100,
+        gamma: 1.0
       };
     }
 
-    console.log('Generating thumbnail...');
+    console.log('Step 4: ✅ Forest visualization created');
+
+    console.log('Step 5: Generating thumbnail...');
     const url = await new Promise<string>((resolve, reject) => {
       try {
         image.getThumbURL(
@@ -148,26 +131,29 @@ export async function GET(req: NextRequest) {
           },
           (url: string, error: any) => {
             if (error) {
-              console.error('Error generating thumbnail:', error);
-              reject(error);
+              console.error('Step 5: ❌ Error generating thumbnail:', error);
+              reject(new Error(`Thumbnail generation error: ${error.message || error}`));
             } else {
-              console.log('Thumbnail generated successfully:', url);
+              console.log('Step 5: ✅ Thumbnail generated successfully:', url);
               resolve(url);
             }
           }
         );
-      } catch (err) {
-        console.error('Exception in getThumbURL:', err);
-        reject(err);
+      } catch (syncError: any) {
+        console.error('Step 5: ❌ Sync error in getThumbURL:', syncError);
+        reject(new Error(`Sync error in getThumbURL: ${syncError?.message || syncError}`));
       }
     });
 
+    console.log('Step 6: ✅ Returning successful response');
     return new Response(
       JSON.stringify({ 
         year, 
         thumbnail: url,
-        dataset,
-        imageCount: size 
+        dataset: 'Hansen Global Forest Change 2024',
+        hansenYear: targetYear,
+        region: 'Amazon',
+        description: yearNum === 2000 ? 'Original tree cover' : `Forest loss up to ${yearNum}`
       }), 
       { 
         status: 200,
@@ -175,12 +161,20 @@ export async function GET(req: NextRequest) {
       }
     );
   } catch (err: any) {
-    console.error('API Error:', err);
+    console.error('❌ API Error:', err);
+    console.error('❌ Error details:', {
+      message: err.message,
+      name: err.name,
+      stack: err.stack
+    });
+    
     return new Response(
       JSON.stringify({ 
-        error: 'Failed to fetch image', 
-        details: err.message,
-        stack: err.stack 
+        error: 'Failed to fetch forest change image', 
+        details: err.message || 'Unknown error occurred',
+        errorType: err.name || 'UnknownError',
+        year: year,
+        timestamp: new Date().toISOString()
       }),
       { 
         status: 500,
