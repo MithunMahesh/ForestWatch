@@ -12,7 +12,7 @@ const containerStyle = {
 
 const defaultCenter = {
   lat: 0,
-  lng: 40,
+  lng: -30,
 };
 
 const libraries: Libraries = ['places'];
@@ -32,6 +32,7 @@ const amazonRainforestCoords = [
   { lat: 3.0, lng: -67.0 },
   { lat: 5.2, lng: -60.0 },
 ];
+
 
 type MapViewProps = {
   center?: { lat: number; lng: number };
@@ -62,21 +63,54 @@ export default function MapView({
     mapTypeControl: false,
     mapTypeId: 'satellite' as const,
     minZoom: 3,
-    maxZoom: 4,
+    maxZoom: 3,
     restriction: {
       latLngBounds: {
         north: 80,
         south: -60,
-        west: -179.9, // prevent wrapping
+        west: -179.9, 
         east: 151
       },
+      strictBounds: true
+    }
 
-    },
-    gestureHandling: 'greedy',
   }), []);
 
 
-  
+
+  const handleAmazonClick = () => {
+    console.log('Amazon Rainforest clicked!');
+    if (mapInstance) {
+      // Temporarily remove map restrictions & zoom for navigation
+      mapInstance.setOptions({ restriction: undefined, maxZoom: 6 });
+      
+      //Set bounds for Amazon
+      const bounds = new google.maps.LatLngBounds();
+      amazonRainforestCoords.forEach((coord) => {
+        bounds.extend(new google.maps.LatLng(coord.lat, coord.lng));
+      });
+
+      //Navigate to Amazon
+      mapInstance.fitBounds(bounds);
+      mapInstance.setZoom(5);
+      
+      // Restore restrictions after navigation completes
+      setTimeout(() => {
+        mapInstance.setOptions({
+          maxZoom: 3,
+          restriction: {
+            latLngBounds: {
+              north: 80,
+              south: -60,
+              west: -179.9,
+              east: 151
+            }
+          }
+        });
+      }, 100000);
+    }
+  };
+
 
   const amazonPolygonOptions = {
     fillColor: isHovered ? '#ff590040' : '#ff7b0020',
@@ -86,7 +120,7 @@ export default function MapView({
     strokeWeight: 2,
   };
 
-  if (loadError) return <div>Map failed to load 😢</div>;
+  if (loadError) return <div>Map failed to load</div>;
   if (!isLoaded) return <div>Loading map...</div>;
 
   return (
@@ -101,8 +135,7 @@ export default function MapView({
         <Polygon
           paths={amazonRainforestCoords}
           options={amazonPolygonOptions}
-          onMouseOver={() => setIsHovered(true)}
-          onMouseOut={() => setIsHovered(false)}
+          onClick={handleAmazonClick}
         />
 
         {/* Overlay 4 world regions for full_map_2008 */}
@@ -129,7 +162,7 @@ export default function MapView({
       </GoogleMap>
 
       {/* Optional year slider UI */}
-      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-[320px] z-50 bg-black/60 p-4 rounded-xl shadow-lg border border-gray-700">
+      <div className="absolute bottom-10 left-1/8 transform -translate-x-1/2 w-[320px] z-50 bg-black/60 p-4 rounded-xl shadow-lg border border-gray-700">
         <div className="flex justify-between items-center text-white text-sm mb-2">
           <span>Year</span>
           <span className="font-mono">{year}</span>
