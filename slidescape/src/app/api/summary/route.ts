@@ -1,19 +1,18 @@
-
-
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 
 const GEMINI_API_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent';
 
-const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Only GET requests allowed' });
-  }
-
-  const { forest, year } = req.query;
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const forest = searchParams.get('forest');
+  const year = searchParams.get('year');
 
   if (!forest || !year) {
-    return res.status(400).json({ error: 'Missing forest or year parameter' });
+    return NextResponse.json(
+      { error: 'Missing forest or year parameter' },
+      { status: 400 }
+    );
   }
 
   try {
@@ -26,7 +25,7 @@ Estimate and summarize the deforestation activity in the ${forest} for the year 
 - Estimated carbon loss in metric tonnes
 - Cumulative deforestation up to that year
 - Comparison with previous year
-- 2–3 visual analogies (e.g. "X football fields", "equal to Y million cars’ emissions")
+- 2–3 visual analogies (e.g. "X football fields", "equal to Y million cars' emissions")
 
 Respond in strict JSON format:
 {
@@ -57,23 +56,30 @@ Respond in strict JSON format:
 
     const content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!content) {
-      return res.status(500).json({ error: 'Gemini did not return a valid response' });
+      return NextResponse.json(
+        { error: 'Gemini did not return a valid response' },
+        { status: 500 }
+      );
     }
 
     // Try parsing the Gemini response as JSON
     try {
       const parsed = JSON.parse(content);
-      return res.status(200).json(parsed);
+      return NextResponse.json(parsed);
     } catch (err) {
-      return res.status(500).json({
-        error: 'Failed to parse Gemini output as JSON',
-        rawOutput: content,
-      });
+      return NextResponse.json(
+        {
+          error: 'Failed to parse Gemini output as JSON',
+          rawOutput: content,
+        },
+        { status: 500 }
+      );
     }
   } catch (error) {
     console.error('Gemini error:', error);
-    return res.status(500).json({ error: 'Something went wrong' });
+    return NextResponse.json(
+      { error: 'Something went wrong' },
+      { status: 500 }
+    );
   }
-};
-
-export default handler;
+}
