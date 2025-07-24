@@ -1,7 +1,7 @@
 'use client';
 
 import { GoogleMap, useJsApiLoader, Polygon, GroundOverlay } from '@react-google-maps/api';
-import { useCallback, useState} from 'react';
+import { useCallback, useState, useEffect, useMemo} from 'react';
 import type { Libraries } from '@react-google-maps/api';
 
 
@@ -15,7 +15,10 @@ const defaultCenter = {
   lng: -30,
 };
 
+
 const libraries: Libraries = ['places'];
+
+const amazonCenter = { lat: -4.5, lng: -63 };
 
 const amazonRainforestCoords = [
   { lat: 5.2, lng: -60.0 },
@@ -46,6 +49,8 @@ export default function MapView({
   const [isHovered, setIsHovered] = useState(false);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [year, setYear] = useState(2008);
+  const [imagesLoaded, setImagesLoaded] = useState(true);
+  const [forestClicked, setForestClicked] = useState(false);
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -56,7 +61,7 @@ export default function MapView({
     setMapInstance(map);
   }, []);
 
-  const mapOptions = useCallback(() => ({
+  const mapOptions = useMemo(() => ({
     tilt: 45,
     fullscreenControl: false,
     streetViewControl: false,
@@ -80,9 +85,10 @@ export default function MapView({
 
   const handleAmazonClick = () => {
     console.log('Amazon Rainforest clicked!');
+    //setForestClicked(true);  
     if (mapInstance) {
       // Temporarily remove map restrictions & zoom for navigation
-      mapInstance.setOptions({ restriction: undefined, maxZoom: 6 });
+      mapInstance.setOptions({ restriction: undefined, maxZoom: 5 });
       
       //Set bounds for Amazon
       const bounds = new google.maps.LatLngBounds();
@@ -93,7 +99,16 @@ export default function MapView({
       //Navigate to Amazon
       mapInstance.fitBounds(bounds);
       mapInstance.setZoom(5);
-      
+
+      mapInstance.setOptions({
+      draggable: false,
+      scrollwheel: false,
+      disableDoubleClickZoom: true,
+      zoomControl: false,
+      minZoom: 5,
+      maxZoom: 5,
+      });
+
       // Restore restrictions after navigation completes
       setTimeout(() => {
         mapInstance.setOptions({
@@ -111,6 +126,31 @@ export default function MapView({
     }
   };
 
+  useEffect(() => {
+  const suffixes = ['NW', 'NE', 'SW', 'SE'];
+  let loadedCount = 0;
+  let errored = false;
+
+  setImagesLoaded(false); // Reset before loading new year
+
+  suffixes.forEach((suffix) => {
+    const img = new Image();
+    img.src = `/forest-images/full_map_${year}_${suffix}.png`;
+
+    img.onload = () => {
+      loadedCount += 1;
+      if (loadedCount === suffixes.length && !errored) {
+        setImagesLoaded(true);
+      }
+    };
+
+    img.onerror = () => {
+      //console.error(`❌ Failed to load image: /forest-images/full_map_${year}_${suffix}.png`);
+      errored = true;
+    };
+  });
+}, [year]);
+
 
   const amazonPolygonOptions = {
     fillColor: isHovered ? '#ff590040' : '#ff7b0020',
@@ -126,39 +166,49 @@ export default function MapView({
   return (
     <div className="relative w-full h-screen">
       <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={center}
-        zoom={zoom}
-        options={mapOptions()}
-        onLoad={onLoad}
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={zoom}
+      options={mapOptions}
+      onLoad={onLoad}
       >
         <Polygon
           paths={amazonRainforestCoords}
           options={amazonPolygonOptions}
           onClick={handleAmazonClick}
         />
+{imagesLoaded && (
+  <>
+    <GroundOverlay
+      //key={`overlay-${year}-NW`}
+      url={`/forest-images/full_map_${year}_NW.png`}
+      bounds={{ north: 80, south: 0, west: -180, east: 0 }}
+      opacity={1}
+    />
+    <GroundOverlay
+      //key={`overlay-${year}-NE`}
+      url={`/forest-images/full_map_${year}_NE.png`}
+      bounds={{ north: 80, south: 0, west: 0, east: 180 }}
+      opacity={1}
+    />
+    <GroundOverlay
+      //key={`overlay-${year}-SW`}
+      url={`/forest-images/full_map_${year}_SW.png`}
+      bounds={{ north: 0, south: -60, west: -180, east: 0 }}
+      opacity={1}
+    />
+    <GroundOverlay
+      key={`overlay-${year}-SE`}
+      url={`/forest-images/full_map_${year}_SE.png`}
+      bounds={{ north: 0, south: -60, west: 0, east: 180 }}
+      opacity={1}
+    />
 
-        {/* Overlay 4 world regions for full_map_2008 */}
-        <GroundOverlay
-          url="/forest-images/full_map_2008_NW.png"
-          bounds={{ north: 80, south: 0, west: -180, east: 0 }}
-          opacity={1}
-        />
-        <GroundOverlay
-          url="/forest-images/full_map_2008_NE.png"
-          bounds={{ north: 80, south: 0, west: 0, east: 180 }}
-          opacity={1}
-        />
-        <GroundOverlay
-          url="/forest-images/full_map_2008_SW.png"
-          bounds={{ north: 0, south: -60, west: -180, east: 0 }}
-          opacity={1}
-        />
-        <GroundOverlay
-          url="/forest-images/full_map_2008_SE.png"
-          bounds={{ north: 0, south: -60, west: 0, east: 180 }}
-          opacity={1}
-        />
+    {"Left Ground Overlay"}
+
+  </>
+)}
+
       </GoogleMap>
 
       {/* Optional year slider UI */}
