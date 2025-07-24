@@ -1,7 +1,7 @@
 'use client';
 
 import { GoogleMap, useJsApiLoader, Polygon, GroundOverlay } from '@react-google-maps/api';
-import { useCallback, useState, useEffect, useMemo} from 'react';
+import { useCallback, useState, useEffect, useMemo, useRef} from 'react';
 import type { Libraries } from '@react-google-maps/api';
 
 
@@ -12,9 +12,8 @@ const containerStyle = {
 
 const defaultCenter = {
   lat: 0,
-  lng: -30,
+  lng: 0,
 };
-
 
 const libraries: Libraries = ['places'];
 
@@ -44,7 +43,7 @@ type MapViewProps = {
 
 export default function MapView({
   center = defaultCenter,
-  zoom = 3,
+  zoom = 2.8,
 }: MapViewProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
@@ -57,8 +56,14 @@ export default function MapView({
     libraries,
   });
 
+  const defaultViewRef = useRef<{ center: google.maps.LatLngLiteral; zoom: number } | null>(null);
+
   const onLoad = useCallback((map: google.maps.Map) => {
     setMapInstance(map);
+    defaultViewRef.current = {
+      center: map.getCenter()?.toJSON() || defaultCenter,
+      zoom: map.getZoom() || zoom
+    }
   }, []);
 
   const mapOptions = useMemo(() => ({
@@ -67,14 +72,19 @@ export default function MapView({
     streetViewControl: false,
     mapTypeControl: false,
     mapTypeId: 'satellite' as const,
-    minZoom: 3,
-    maxZoom: 3,
+    minZoom: 2.8,
+    maxZoom: 2.8,
+    draggable: false,
+    scrollwheel: false,
+    disableDoubleClickZoom: true,
+    zoomControl: false,
+    gestureHandling: 'none',
     restriction: {
       latLngBounds: {
         north: 80,
         south: -60,
         west: -179.9, 
-        east: 151
+        east: 179.9
       },
       strictBounds: true
     }
@@ -84,8 +94,6 @@ export default function MapView({
 
 
   const handleAmazonClick = () => {
-    console.log('Amazon Rainforest clicked!');
-    //setForestClicked(true);  
     if (mapInstance) {
       // Temporarily remove map restrictions & zoom for navigation
       mapInstance.setOptions({ restriction: undefined, maxZoom: 5 });
@@ -100,6 +108,7 @@ export default function MapView({
       mapInstance.fitBounds(bounds);
       mapInstance.setZoom(5);
 
+      //Lock user in place
       mapInstance.setOptions({
       draggable: false,
       scrollwheel: false,
@@ -109,22 +118,22 @@ export default function MapView({
       maxZoom: 5,
       });
 
-      // Restore restrictions after navigation completes
+
+      // Set forest variable to true after clicked
       setTimeout(() => {
-        mapInstance.setOptions({
-          maxZoom: 3,
-          restriction: {
-            latLngBounds: {
-              north: 80,
-              south: -60,
-              west: -179.9,
-              east: 151
-            }
-          }
-        });
-      }, 100000);
+        setForestClicked(true);
+      }, 200);
     }
   };
+
+  const handleBack= () => {
+    if (mapInstance && defaultViewRef.current) {
+      setForestClicked(false);
+      mapInstance.setOptions(mapOptions);
+      mapInstance.setCenter(defaultViewRef.current.center);
+      mapInstance.setZoom(defaultViewRef.current.zoom);
+    }
+  }
 
   useEffect(() => {
   const suffixes = ['NW', 'NE', 'SW', 'SE'];
@@ -203,14 +212,9 @@ export default function MapView({
       bounds={{ north: 0, south: -60, west: 0, east: 180 }}
       opacity={1}
     />
-
-    {"Left Ground Overlay"}
-
-  </>
-)}
-
+    </>
+  )}
       </GoogleMap>
-
       {/* Optional year slider UI */}
       <div className="absolute bottom-10 left-1/8 transform -translate-x-1/2 w-[320px] z-50 bg-black/60 p-4 rounded-xl shadow-lg border border-gray-700">
         <div className="flex justify-between items-center text-white text-sm mb-2">
@@ -240,6 +244,14 @@ export default function MapView({
           }}
         />
       </div>
+      {forestClicked && (
+      <button
+        className="absolute top-5 left-5 z-50 bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+        onClick={handleBack}
+      >
+        ← Back
+      </button>
+    )}
     </div>
   );
 }
