@@ -135,7 +135,7 @@ export default function MapView({
     }
   }
 
-  useEffect(() => {
+  /*useEffect(() => {
   const suffixes = ['NW', 'NE', 'SW', 'SE'];
   let loadedCount = 0;
   let errored = false;
@@ -144,7 +144,7 @@ export default function MapView({
 
   suffixes.forEach((suffix) => {
     const img = new Image();
-    img.src = `/forest-images/full_map_${year}_${suffix}.png`;
+    img.src = `/hansen-forest-images/full_map_${year}_${suffix}.png`;
 
     img.onload = () => {
       loadedCount += 1;
@@ -154,11 +154,11 @@ export default function MapView({
     };
 
     img.onerror = () => {
-      //console.error(`❌ Failed to load image: /forest-images/full_map_${year}_${suffix}.png`);
+      //console.error(`❌ Failed to load image: /hansen-forest-images/full_map_${year}_${suffix}.png`);
       errored = true;
     };
   });
-}, [year]);
+}, [year]);*/
 
 
   const amazonPolygonOptions = {
@@ -186,34 +186,32 @@ export default function MapView({
           options={amazonPolygonOptions}
           onClick={handleAmazonClick}
         />
-{imagesLoaded && (
   <>
     <GroundOverlay
-      //key={`overlay-${year}-NW`}
-      url={`/forest-images/full_map_${year}_NW.png`}
+      key={`overlay-${year}-NW`}
+      url={`/hansen-forest-images/full_map_${year}_NW.png`}
       bounds={{ north: 80, south: 0, west: -180, east: 0 }}
       opacity={1}
     />
     <GroundOverlay
-      //key={`overlay-${year}-NE`}
-      url={`/forest-images/full_map_${year}_NE.png`}
+      key={`overlay-${year}-NE`}
+      url={`/hansen-forest-images/full_map_${year}_NE.png`}
       bounds={{ north: 80, south: 0, west: 0, east: 180 }}
       opacity={1}
     />
     <GroundOverlay
-      //key={`overlay-${year}-SW`}
-      url={`/forest-images/full_map_${year}_SW.png`}
+      key={`overlay-${year}-SW`}
+      url={`/hansen-forest-images/full_map_${year}_SW.png`}
       bounds={{ north: 0, south: -60, west: -180, east: 0 }}
       opacity={1}
     />
     <GroundOverlay
       key={`overlay-${year}-SE`}
-      url={`/forest-images/full_map_${year}_SE.png`}
+      url={`/hansen-forest-images/full_map_${year}_SE.png`}
       bounds={{ north: 0, south: -60, west: 0, east: 180 }}
       opacity={1}
     />
     </>
-  )}
       </GoogleMap>
       {/* Optional year slider UI */}
       <div className="absolute bottom-10 left-1/8 transform -translate-x-1/2 w-[320px] z-50 bg-black/60 p-4 rounded-xl shadow-lg border border-gray-700">
@@ -224,7 +222,7 @@ export default function MapView({
         <input
           type="range"
           min={2000}
-          max={2025}
+          max={2024}
           step={1}
           value={year}
           onChange={(e) => setYear(parseInt(e.target.value))}
@@ -240,7 +238,7 @@ export default function MapView({
                     [&::-webkit-slider-thumb]:shadow-md
                     [&::-moz-range-thumb]:appearance-none"
           style={{
-            background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(year - 2000) / (2025 - 2000) * 100}%, #2e2e2e ${(year - 2000) / (2025 - 2000) * 100}%, #2e2e2e 100%)`,
+            background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(year - 2000) / (2024 - 2000) * 100}%, #2e2e2e ${(year - 2000) / (2024 - 2000) * 100}%, #2e2e2e 100%)`,
           }}
         />
       </div>
@@ -252,6 +250,15 @@ export default function MapView({
         ← Back
       </button>
     )}
+    
+    {/*!forestClicked && (
+      <Polygon
+        center={amazonCenter}
+      />
+        
+    )
+
+    */}
     </div>
   );
 }
