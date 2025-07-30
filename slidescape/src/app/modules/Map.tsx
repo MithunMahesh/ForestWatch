@@ -438,46 +438,46 @@ export default function MapView({
         </>
       </GoogleMap>
 
-      {/* Modern Stats Box */}
+      {/* Modern Stats Box - Redesigned to match landing page */}
       {anyForestClicked && showStats && (
-        <div className={`absolute top-5 right-5 w-96 z-50 transition-all duration-700 ease-out transform ${
+        <div className={`absolute top-5 right-5 w-80 z-50 transition-all duration-700 ease-out transform ${
           showStats ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-full opacity-0 scale-95'
         }`}>
-          <div className="bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl overflow-hidden">
+          <div className="bg-black/50 backdrop-blur-sm rounded-xl border border-green-500/30 shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-red-600/20 to-orange-600/20 p-4 border-b border-gray-700/50">
+            <div className="bg-gradient-to-r from-green-950/30 to-green-900/20 p-3 border-b border-green-500/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-1">
+                  <h3 className="text-lg font-bold bg-gradient-to-r from-green-400 to-green-300 bg-clip-text text-transparent mb-1">
                     {currentForest && forestNames[currentForest as ForestKey]}
                   </h3>
-                  <p className="text-gray-300 text-sm">Deforestation Analysis • {year}</p>
+                  <p className="text-gray-300 text-xs">Deforestation Analysis • {year}</p>
                 </div>
-                <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
-                  <div className="w-6 h-6 bg-red-500 rounded-full animate-pulse"></div>
+                <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                 </div>
               </div>
             </div>
 
             {/* Content */}
-            <div className="p-4 space-y-4">
+            <div className="p-3 space-y-3">
               {isLoadingData ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-                  <span className="ml-3 text-gray-300">Loading data...</span>
+                <div className="flex items-center justify-center py-6">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-400"></div>
+                  <span className="ml-3 text-gray-300 text-sm">Loading data...</span>
                 </div>
               ) : deforestationData ? (
                 <>
                   {/* Key Statistics */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-gradient-to-br from-red-500/10 to-red-600/10 p-3 rounded-xl border border-red-500/20">
-                      <div className="text-2xl font-bold text-red-400 mb-1">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-green-950/20 border border-green-500/30 p-2 rounded-lg">
+                      <div className="text-lg font-bold text-green-400 mb-1">
                         {formatNumber(deforestationData.deforestation_area_km2)}
                       </div>
                       <div className="text-xs text-gray-400 uppercase tracking-wide">km² Lost</div>
                     </div>
-                    <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 p-3 rounded-xl border border-orange-500/20">
-                      <div className="text-2xl font-bold text-orange-400 mb-1">
+                    <div className="bg-green-950/20 border border-green-500/30 p-2 rounded-lg">
+                      <div className="text-lg font-bold text-green-400 mb-1">
                         {formatNumber(deforestationData.carbon_loss_tonnes)}
                       </div>
                       <div className="text-xs text-gray-400 uppercase tracking-wide">Tonnes CO₂</div>
@@ -485,53 +485,47 @@ export default function MapView({
                   </div>
 
                   {/* Yearly Change */}
-                  <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 p-3 rounded-xl border border-gray-600/30">
+                  <div className="bg-green-950/20 border border-green-500/30 p-2 rounded-lg">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-300 text-sm">Yearly Change</span>
                       <div className={`flex items-center space-x-1 ${
                         deforestationData.yearly_change_percent >= 0 ? 'text-red-400' : 'text-green-400'
                       }`}>
-                        <span className="text-lg font-bold">
+                        <span className="text-sm font-bold">
                           {deforestationData.yearly_change_percent >= 0 ? '+' : ''}
                           {deforestationData.yearly_change_percent.toFixed(1)}%
                         </span>
-                        <div className={`w-0 h-0 border-l-[6px] border-r-[6px] border-solid border-l-transparent border-r-transparent ${
-                          deforestationData.yearly_change_percent >= 0 
-                            ? 'border-b-[8px] border-b-red-400' 
-                            : 'border-t-[8px] border-t-green-400'
-                        }`}></div>
                       </div>
                     </div>
                   </div>
 
                   {/* Cumulative Data */}
-                  <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 p-3 rounded-xl border border-purple-500/20">
-                    <div className="text-sm text-gray-300 mb-1">Total Cumulative Loss</div>
-                    <div className="text-xl font-bold text-purple-400">
+                  <div className="bg-green-950/20 border border-green-500/30 p-2 rounded-lg">
+                    <div className="text-xs text-gray-300 mb-1">Total Cumulative Loss</div>
+                    <div className="text-sm font-bold text-green-400">
                       {formatNumber(deforestationData.cumulative_deforestation_km2)} km²
                     </div>
                   </div>
 
                   {/* Fun Facts */}
                   <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">Impact Comparisons</h4>
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                    <h4 className="text-xs font-semibold text-green-300 uppercase tracking-wide">Impact Comparisons</h4>
+                    <div className="space-y-1 max-h-24 overflow-y-auto">
                       {deforestationData.cool_facts.map((fact, index) => (
                         <div 
                           key={index}
-                          className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 p-2 rounded-lg border border-blue-500/20 text-sm text-gray-300 transition-all duration-500 ease-out transform translate-y-0 opacity-100"
-                          style={{ transitionDelay: `${index * 100}ms` }}
+                          className="bg-green-950/20 border border-green-500/30 p-2 rounded-lg text-xs text-gray-300"
                         >
-                          <span className="text-cyan-400">•</span> {fact}
+                          <span className="text-green-400">•</span> {fact}
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* Summary */}
-                  <div className="bg-gradient-to-r from-gray-800/30 to-gray-700/30 p-3 rounded-xl border border-gray-600/20">
-                    <div className="text-xs text-gray-400 uppercase tracking-wide mb-2">Summary</div>
-                    <p className="text-sm text-gray-300 leading-relaxed">
+                  <div className="bg-green-950/20 border border-green-500/30 p-2 rounded-lg">
+                    <div className="text-xs text-green-300 uppercase tracking-wide mb-1">Summary</div>
+                    <p className="text-xs text-gray-300 leading-relaxed">
                       {deforestationData.short_summary}
                     </p>
                   </div>
