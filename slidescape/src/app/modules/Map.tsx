@@ -27,7 +27,6 @@ const siberianCenter = { lat: 52.0, lng: 100.0 };
 const easternUSCenter = { lat: 38.0, lng: -80.0 };
 const westernUSCenter = { lat: 45.0, lng: -122.0 };
 
-// Forest Coordinates 
 const amazonRainforestCoords = [
   { lat: 5.2, lng: -60.0 },
   { lat: 4.0, lng: -52.0 },
@@ -72,7 +71,7 @@ const siberianCoords = [
   { lat: 51.0, lng: 128.0 },  
   { lat: 41.0, lng: 122.0 },  
   { lat: 40.0, lng: 95.0 },  
-  { lat: 47.0, lng: 75.0 },   
+  { lat: 47.0, lng: 75.0 }, 
 ];
 
 const easternUSCoords = [
