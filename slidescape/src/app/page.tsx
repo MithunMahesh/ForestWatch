@@ -83,7 +83,7 @@ export default function Home() {
                   <span className="bg-gradient-to-r from-green-400 via-green-300 to-green-500 bg-clip-text text-transparent">
                     Forest Loss
                   </span>{" "}
-                  in Real Time
+                  in Multiple Eras
                 </h1>
                 <p className="text-xl text-gray-300 leading-relaxed max-w-2xl">
                   Monitor deforestation across the world's most critical forest regions. Visualize yearly data,
