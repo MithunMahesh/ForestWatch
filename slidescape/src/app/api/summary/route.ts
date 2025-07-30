@@ -402,6 +402,8 @@ export async function GET(request: NextRequest) {
       cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
     }
 
+    //Remove commas in numbers
+    cleanContent = cleanContent.replace(/(\d),(?=\d)/g, '$1');
 
     // Try parsing the cleaned AI response as JSON
     try {
