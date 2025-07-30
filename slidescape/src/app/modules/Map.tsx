@@ -602,6 +602,21 @@ export default function MapView({
         </button>
       )}
 
+      
+      {/* Info Card - Bottom Center */}
+      {!anyForestClicked && (
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-green-950/30 border border-green-500/30 backdrop-blur-sm rounded-lg px-4 py-2 flex items-center space-x-2">
+            <div className="w-5 h-5 bg-green-500/20 rounded-full flex items-center justify-center">
+              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+            </div>
+            <span className="text-sm text-green-300 whitespace-nowrap">
+              Click on the pins and move the slider!
+            </span>
+          </div>
+        </div>
+      )}
+
 
     </div>
   );

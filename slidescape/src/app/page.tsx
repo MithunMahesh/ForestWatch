@@ -86,7 +86,7 @@ export default function Home() {
                   in Real Time
                 </h1>
                 <p className="text-xl text-gray-300 leading-relaxed max-w-2xl">
-                  Monitor deforestation across the world's 15 most critical forest regions. Visualize yearly data,
+                  Monitor deforestation across the world's most critical forest regions. Visualize yearly data,
                   understand trends, and join the fight to protect our planet's lungs.
                 </p>
               </div>
@@ -150,7 +150,7 @@ export default function Home() {
                   </div>
                   <h3 className="font-semibold text-green-300">Select a Forest</h3>
                   <p className="text-sm text-gray-400">
-                    Choose from 15 major forest regions worldwide to explore detailed deforestation data.
+                    Click on a pin and choose from multiple major forest regions worldwide to explore detailed deforestation data.
                   </p>
                 </div>
                 <div className="text-center space-y-3">
@@ -159,7 +159,7 @@ export default function Home() {
                   </div>
                   <h3 className="font-semibold text-green-300">View Yearly Trends</h3>
                   <p className="text-sm text-gray-400">
-                    Analyze year-over-year changes with interactive charts and visual representations.
+                    Move the sliders and analyze year-over-year changes with interactive charts and visual representations.
                   </p>
                 </div>
                 <div className="text-center space-y-3">
