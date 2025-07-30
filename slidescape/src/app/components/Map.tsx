@@ -65,8 +65,6 @@ const centralAmericanCoords = [
   { lat: 14.5, lng: -100.0 }, 
 ];
 
-
-
 const siberianCoords = [
   { lat: 50.0, lng: 60.0 },
   { lat: 70.0, lng: 60.0 },
@@ -94,6 +92,27 @@ const westernUSCoords = [
   { lat: 42.5, lng: -124.0 },
 ];
 
+// Forest name mapping
+const forestNames = {
+  amazon: 'Amazon Rainforest',
+  southeastAsian: 'Southeast Asian Forest',
+  centralAmerican: 'Central American Forest',
+  siberian: 'Siberian Taiga',
+  easternUS: 'Eastern US Forest',
+  westernUS: 'Western US Forest',
+} as const;
+
+type ForestKey = keyof typeof forestNames;
+
+// Deforestation data interface
+interface DeforestationData {
+  deforestation_area_km2: number;
+  carbon_loss_tonnes: number;
+  cumulative_deforestation_km2: number;
+  yearly_change_percent: number;
+  cool_facts: string[];
+  short_summary: string;
+}
 
 type MapViewProps = {
   center?: { lat: number; lng: number };
@@ -134,6 +153,12 @@ export default function MapView({
   const [easternUSInfoOpen, setEasternUSInfoOpen] = useState(false);
   const [westernUSInfoOpen, setWesternUSInfoOpen] = useState(false);
 
+  // Stats box states
+  const [deforestationData, setDeforestationData] = useState<DeforestationData | null>(null);
+  const [currentForest, setCurrentForest] = useState<ForestKey | ''>('');
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+
   const defaultViewRef = useRef<{ center: google.maps.LatLngLiteral; zoom: number } | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
@@ -145,10 +170,33 @@ export default function MapView({
     const timeout = setTimeout(() => {
       if (rawYear !== year) {
         setYear(rawYear);
+        // Fetch new data when year changes
+        if (currentForest && anyForestClicked) {
+          fetchDeforestationData(currentForest, rawYear);
+        }
       }
     }, 400);
     return () => clearTimeout(timeout);
-  }, [rawYear, year]);
+  }, [rawYear, year, currentForest]);
+
+  // Fetch deforestation data from API
+  const fetchDeforestationData = async (forest: string, selectedYear: number) => {
+    setIsLoadingData(true);
+    try {
+      const response = await fetch(`/api/summary?forest=${forest}&year=${selectedYear}`);
+      if (response.ok) {
+        const data = await response.json();
+        setDeforestationData(data);
+        setShowStats(true);
+      } else {
+        console.error('Failed to fetch deforestation data');
+      }
+    } catch (error) {
+      console.error('Error fetching deforestation data:', error);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
 
   const onLoad = useCallback((map: google.maps.Map) => {
     setMapInstance(map);
@@ -188,7 +236,7 @@ export default function MapView({
     easternUSForestClicked || westernUSForestClicked;
 
   // Generic click handler
-  const createForestClickHandler = (coords: any[], setForestClicked: any, setInfoOpen: any, setBorderLoad: any) => {
+  const createForestClickHandler = (coords: any[], setForestClicked: any, setInfoOpen: any, setBorderLoad: any, forestKey: ForestKey) => {
     return () => {
       if (mapInstance) {
         mapInstance.setOptions({ restriction: undefined, maxZoom: 5 });
@@ -214,18 +262,21 @@ export default function MapView({
           setForestClicked(true);
           setInfoOpen(false);
           setBorderLoad(true);
+          setCurrentForest(forestKey);
+          // Fetch data for the selected forest
+          fetchDeforestationData(forestKey, year);
         }, 200);
       }
     };
   };
 
   // Individual click handlers
-  const handleAmazonClick = createForestClickHandler(amazonRainforestCoords, setAmazonForestClicked, setAmazonInfoOpen, setAmazonBorderLoad);
-  const handleSoutheastAsianClick = createForestClickHandler(southeastAsianCoords, setSoutheastAsianForestClicked, setSoutheastAsianInfoOpen, setSoutheastAsianBorderLoad);
-  const handleCentralAmericanClick = createForestClickHandler(centralAmericanCoords, setCentralAmericanForestClicked, setCentralAmericanInfoOpen, setCentralAmericanBorderLoad);
-  const handleSiberianClick = createForestClickHandler(siberianCoords, setSiberianForestClicked, setSiberianInfoOpen, setSiberianBorderLoad);
-  const handleEasternUSClick = createForestClickHandler(easternUSCoords, setEasternUSForestClicked, setEasternUSInfoOpen, setEasternUSBorderLoad);
-  const handleWesternUSClick = createForestClickHandler(westernUSCoords, setWesternUSForestClicked, setWesternUSInfoOpen, setWesternUSBorderLoad);
+  const handleAmazonClick = createForestClickHandler(amazonRainforestCoords, setAmazonForestClicked, setAmazonInfoOpen, setAmazonBorderLoad, 'amazon');
+  const handleSoutheastAsianClick = createForestClickHandler(southeastAsianCoords, setSoutheastAsianForestClicked, setSoutheastAsianInfoOpen, setSoutheastAsianBorderLoad, 'southeastAsian');
+  const handleCentralAmericanClick = createForestClickHandler(centralAmericanCoords, setCentralAmericanForestClicked, setCentralAmericanInfoOpen, setCentralAmericanBorderLoad, 'centralAmerican');
+  const handleSiberianClick = createForestClickHandler(siberianCoords, setSiberianForestClicked, setSiberianInfoOpen, setSiberianBorderLoad, 'siberian');
+  const handleEasternUSClick = createForestClickHandler(easternUSCoords, setEasternUSForestClicked, setEasternUSInfoOpen, setEasternUSBorderLoad, 'easternUS');
+  const handleWesternUSClick = createForestClickHandler(westernUSCoords, setWesternUSForestClicked, setWesternUSInfoOpen, setWesternUSBorderLoad, 'westernUS');
 
   const handleBack = () => {
     if (mapInstance && defaultViewRef.current) {
@@ -238,6 +289,9 @@ export default function MapView({
       setWesternUSForestClicked(false);
       
       setLoadClicked(true);
+      setShowStats(false);
+      setDeforestationData(null);
+      setCurrentForest('');
       
       // Reset all border loads
       setAmazonBorderLoad(false);
@@ -296,6 +350,11 @@ export default function MapView({
         </div>
       </>
     );
+  };
+
+  // Format number with commas
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat().format(Math.round(num));
   };
 
   if (loadError) return <div>Map failed to load</div>;
@@ -379,6 +438,110 @@ export default function MapView({
         </>
       </GoogleMap>
 
+      {/* Modern Stats Box */}
+      {anyForestClicked && showStats && (
+        <div className={`absolute top-5 right-5 w-96 z-50 transition-all duration-700 ease-out transform ${
+          showStats ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-full opacity-0 scale-95'
+        }`}>
+          <div className="bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-red-600/20 to-orange-600/20 p-4 border-b border-gray-700/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-1">
+                    {currentForest && forestNames[currentForest as ForestKey]}
+                  </h3>
+                  <p className="text-gray-300 text-sm">Deforestation Analysis • {year}</p>
+                </div>
+                <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <div className="w-6 h-6 bg-red-500 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 space-y-4">
+              {isLoadingData ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+                  <span className="ml-3 text-gray-300">Loading data...</span>
+                </div>
+              ) : deforestationData ? (
+                <>
+                  {/* Key Statistics */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gradient-to-br from-red-500/10 to-red-600/10 p-3 rounded-xl border border-red-500/20">
+                      <div className="text-2xl font-bold text-red-400 mb-1">
+                        {formatNumber(deforestationData.deforestation_area_km2)}
+                      </div>
+                      <div className="text-xs text-gray-400 uppercase tracking-wide">km² Lost</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 p-3 rounded-xl border border-orange-500/20">
+                      <div className="text-2xl font-bold text-orange-400 mb-1">
+                        {formatNumber(deforestationData.carbon_loss_tonnes)}
+                      </div>
+                      <div className="text-xs text-gray-400 uppercase tracking-wide">Tonnes CO₂</div>
+                    </div>
+                  </div>
+
+                  {/* Yearly Change */}
+                  <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 p-3 rounded-xl border border-gray-600/30">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-300 text-sm">Yearly Change</span>
+                      <div className={`flex items-center space-x-1 ${
+                        deforestationData.yearly_change_percent >= 0 ? 'text-red-400' : 'text-green-400'
+                      }`}>
+                        <span className="text-lg font-bold">
+                          {deforestationData.yearly_change_percent >= 0 ? '+' : ''}
+                          {deforestationData.yearly_change_percent.toFixed(1)}%
+                        </span>
+                        <div className={`w-0 h-0 border-l-[6px] border-r-[6px] border-solid border-l-transparent border-r-transparent ${
+                          deforestationData.yearly_change_percent >= 0 
+                            ? 'border-b-[8px] border-b-red-400' 
+                            : 'border-t-[8px] border-t-green-400'
+                        }`}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cumulative Data */}
+                  <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 p-3 rounded-xl border border-purple-500/20">
+                    <div className="text-sm text-gray-300 mb-1">Total Cumulative Loss</div>
+                    <div className="text-xl font-bold text-purple-400">
+                      {formatNumber(deforestationData.cumulative_deforestation_km2)} km²
+                    </div>
+                  </div>
+
+                  {/* Fun Facts */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">Impact Comparisons</h4>
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {deforestationData.cool_facts.map((fact, index) => (
+                        <div 
+                          key={index}
+                          className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 p-2 rounded-lg border border-blue-500/20 text-sm text-gray-300 transition-all duration-500 ease-out transform translate-y-0 opacity-100"
+                          style={{ transitionDelay: `${index * 100}ms` }}
+                        >
+                          <span className="text-cyan-400">•</span> {fact}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Summary */}
+                  <div className="bg-gradient-to-r from-gray-800/30 to-gray-700/30 p-3 rounded-xl border border-gray-600/20">
+                    <div className="text-xs text-gray-400 uppercase tracking-wide mb-2">Summary</div>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      {deforestationData.short_summary}
+                    </p>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Year slider */}
       {anyForestClicked && (
         <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-[320px] z-50 bg-black/60 p-4 rounded-xl shadow-lg border border-gray-700">
@@ -443,6 +606,8 @@ export default function MapView({
           ← Back
         </button>
       )}
+
+
     </div>
   );
 }
