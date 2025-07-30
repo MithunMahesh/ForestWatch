@@ -23,11 +23,10 @@ const libraries: Libraries = ['places'];
 const amazonCenter = { lat: -4.5, lng: -63 };
 const southeastAsianCenter = { lat: -2.5, lng: 118.0 };
 const centralAmericanCenter = { lat: 14.0, lng: -87.0 };
-const siberianCenter = { lat: 62.0, lng: 95.0 };
+const siberianCenter = { lat: 52.0, lng: 100.0 };
 const easternUSCenter = { lat: 38.0, lng: -80.0 };
 const westernUSCenter = { lat: 45.0, lng: -122.0 };
 
-// Forest Coordinates (removed Congo, Madagascar, Canadian, Cerrado)
 const amazonRainforestCoords = [
   { lat: 5.2, lng: -60.0 },
   { lat: 4.0, lng: -52.0 },
@@ -66,11 +65,13 @@ const centralAmericanCoords = [
 ];
 
 const siberianCoords = [
-  { lat: 50.0, lng: 60.0 },
-  { lat: 70.0, lng: 60.0 },
-  { lat: 70.0, lng: 170.0 },
-  { lat: 50.0, lng: 170.0 },
-  { lat: 50.0, lng: 60.0 },
+  { lat: 59.0, lng: 73.0 },  
+  { lat: 63.0, lng: 95.0 },  
+  { lat: 61.0, lng: 125.0 }, 
+  { lat: 51.0, lng: 128.0 },  
+  { lat: 41.0, lng: 122.0 },  
+  { lat: 40.0, lng: 95.0 },  
+  { lat: 47.0, lng: 75.0 }, 
 ];
 
 const easternUSCoords = [
@@ -96,10 +97,10 @@ const westernUSCoords = [
 const forestNames = {
   amazon: 'Amazon Rainforest',
   southeastAsian: 'Southeast Asian Forest',
-  centralAmerican: 'Central American Forest',
+  centralAmerican: 'Mesoamerican Tropical Forests',
   siberian: 'Siberian Taiga',
-  easternUS: 'Eastern US Forest',
-  westernUS: 'Western US Forest',
+  easternUS: 'Eastern Deciduous Forests',
+  westernUS: 'Pacific Northwest Forests',
 } as const;
 
 type ForestKey = keyof typeof forestNames;
@@ -404,10 +405,10 @@ export default function MapView({
         {/* Info Cards */}
         {createInfoCard(amazonCenter, amazonInfoOpen, setAmazonInfoOpen, handleAmazonClick, "Amazon Rainforest")}
         {createInfoCard(southeastAsianCenter, southeastAsianInfoOpen, setSoutheastAsianInfoOpen, handleSoutheastAsianClick, "Southeast Asian Forest")}
-        {createInfoCard(centralAmericanCenter, centralAmericanInfoOpen, setCentralAmericanInfoOpen, handleCentralAmericanClick, "Central American Forest")}
+        {createInfoCard(centralAmericanCenter, centralAmericanInfoOpen, setCentralAmericanInfoOpen, handleCentralAmericanClick, "Mesoamerican Tropical Forests")}
         {createInfoCard(siberianCenter, siberianInfoOpen, setSiberianInfoOpen, handleSiberianClick, "Siberian Taiga")}
-        {createInfoCard(easternUSCenter, easternUSInfoOpen, setEasternUSInfoOpen, handleEasternUSClick, "Eastern US Forest")}
-        {createInfoCard(westernUSCenter, westernUSInfoOpen, setWesternUSInfoOpen, handleWesternUSClick, "Western US Forest")}
+        {createInfoCard(easternUSCenter, easternUSInfoOpen, setEasternUSInfoOpen, handleEasternUSClick, "Eastern Deciduous Forests")}
+        {createInfoCard(westernUSCenter, westernUSInfoOpen, setWesternUSInfoOpen, handleWesternUSClick, "Pacific Northwest Forests")}
 
         {/* Ground overlays */}
         <>
