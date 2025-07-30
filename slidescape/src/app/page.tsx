@@ -360,9 +360,6 @@ export default function Home() {
               Small actions create big impact. Choose sustainable products, reduce paper consumption, and spread
               awareness.
             </p>
-            <Button size="lg" className="bg-green-600 hover:bg-green-700 text-black font-semibold px-8 py-4">
-              Start Making a Difference Today
-            </Button>
           </div>
         </div>
       </section>
