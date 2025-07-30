@@ -223,7 +223,7 @@ export default function MapView({
     restriction: {
       latLngBounds: {
         north: 80,
-        south: -50,
+        south: -45,
         west: -179.9,
         east: 179.9,
       },
