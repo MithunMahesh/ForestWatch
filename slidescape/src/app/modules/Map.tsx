@@ -122,7 +122,7 @@ type MapViewProps = {
 
 export default function MapView({
   center = defaultCenter,
-  zoom = 2.8,
+  zoom = 3,
 }: MapViewProps) {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [year, setYear] = useState(2008);
@@ -213,8 +213,8 @@ export default function MapView({
     streetViewControl: false,
     mapTypeControl: false,
     mapTypeId: 'satellite' as const,
-    minZoom: 2.8,
-    maxZoom: 2.8,
+    minZoom: 3,
+    maxZoom: 3,
     draggable: false,
     scrollwheel: false,
     disableDoubleClickZoom: true,
@@ -223,7 +223,7 @@ export default function MapView({
     restriction: {
       latLngBounds: {
         north: 80,
-        south: -60,
+        south: -50,
         west: -179.9,
         east: 179.9,
       },
