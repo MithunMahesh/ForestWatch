@@ -201,6 +201,20 @@ export default function MapView({
     libraries,
   });
 
+    // Add these logs
+  console.log('isLoaded:', isLoaded);
+  console.log('loadError:', loadError);
+
+  if (loadError) {
+    console.error('Load error details:', loadError);
+    return <div>Map failed to load: {loadError.message}</div>;
+  }
+
+  if (!isLoaded) {
+    console.log('Still loading...');
+    return <div>Loading map...</div>;
+  }
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (rawYear !== year) {
