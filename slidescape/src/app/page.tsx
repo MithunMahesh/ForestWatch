@@ -33,7 +33,6 @@ export default function Home() {
   if (showMap) {
     return (
       <div className="w-full h-screen bg-black text-white fixed inset-0 overflow-hidden">
-        {/* Back button & logo */}
         <div className="absolute bottom-4 left-20 z-50 flex items-center space-x-3">
           <Button
             variant="ghost"
@@ -53,7 +52,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Loading overlay when clicking Back */}
         {isLoading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
             <svg
@@ -86,7 +84,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white relative">
-      {/* Loading overlay when navigating in */}
       {isLoading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
           <svg
@@ -110,7 +107,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Navigation */}
       <nav className="border-b border-green-900/20 bg-black/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -134,7 +130,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-green-900/10 via-black to-red-900/5" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
@@ -193,7 +188,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How to Use Information Card */}
       <section className="py-16 bg-gradient-to-b from-black to-green-950/10">  
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">  
           <Card className="bg-green-950/20 border-green-500/30 backdrop-blur-sm">  
@@ -241,7 +235,6 @@ export default function Home() {
         </div>  
       </section>
 
-      {/* How You Can Help Section */}
       <section className="py-20 bg-gradient-to-b from-green-950/10 to-black">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -258,7 +251,6 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* World Wildlife Fund */}
             <Card className="bg-green-950/20 border-green-500/30 hover:border-green-400/50 transition-all duration-300 group">
               <CardHeader>
                 <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
@@ -283,8 +275,6 @@ export default function Home() {
                 </Button>
               </CardContent>
             </Card>
-
-            {/* Rainforest Alliance */}
             <Card className="bg-green-950/20 border-green-500/30 hover:border-green-400/50 transition-all duration-300 group">
               <CardHeader>
                 <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
@@ -310,7 +300,6 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* Amazon Conservation */}
             <Card className="bg-green-950/20 border-green-500/30 hover:border-green-400/50 transition-all duration-300 group">
               <CardHeader>
                 <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
@@ -336,7 +325,6 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* One Tree Planted */}
             <Card className="bg-green-950/20 border-green-500/30 hover:border-green-400/50 transition-all duration-300 group">
               <CardHeader>
                 <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
@@ -362,7 +350,6 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* Greenpeace */}
             <Card className="bg-green-950/20 border-green-500/30 hover:border-green-400/50 transition-all duration-300 group">
               <CardHeader>
                 <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
@@ -392,7 +379,6 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* Forest Stewardship Council */}
             <Card className="bg-green-950/20 border-green-500/30 hover:border-green-400/50 transition-all duration-300 group">
               <CardHeader>
                 <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
@@ -428,7 +414,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-green-900/20 bg-black py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">

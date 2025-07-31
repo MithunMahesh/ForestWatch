@@ -19,7 +19,6 @@ const containerStyle = {
 const defaultCenter = { lat: 0, lng: 0 };
 const libraries: Libraries = ['places'];
 
-// Forest Centers (added Canadian Boreal, Chinese Temperate, East European Taiga)
 const amazonCenter = { lat: -4.5, lng: -63 };
 const southeastAsianCenter = { lat: -2.5, lng: 118.0 };
 const centralAmericanCenter = { lat: 14.0, lng: -87.0 };
@@ -122,7 +121,6 @@ const eastEuropeanTaigaCoords = [
   { lat: 50.0, lng:  30.0 },
 ];
 
-// Forest name mapping
 const forestNames = {
   amazon: 'Amazon Rainforest',
   southeastAsian: 'Southeast Asian Forest',
@@ -137,7 +135,6 @@ const forestNames = {
 
 type ForestKey = keyof typeof forestNames;
 
-// Deforestation data interface
 interface DeforestationData {
   deforestation_area_km2: number;
   carbon_loss_tonnes: number;
@@ -160,7 +157,6 @@ export default function MapView({
   const [year, setYear] = useState(2008);
   const [rawYear, setRawYear] = useState(2008);
   
-  // Individual states for all forests
   const [amazonForestClicked, setAmazonForestClicked] = useState(false);
   const [southeastAsianForestClicked, setSoutheastAsianForestClicked] = useState(false);
   const [centralAmericanForestClicked, setCentralAmericanForestClicked] = useState(false);
@@ -173,7 +169,6 @@ export default function MapView({
   
   const [loadClicked, setLoadClicked] = useState(false);
   
-  // Individual border load states
   const [amazonBorderLoad, setAmazonBorderLoad] = useState(false);
   const [southeastAsianBorderLoad, setSoutheastAsianBorderLoad] = useState(false);
   const [centralAmericanBorderLoad, setCentralAmericanBorderLoad] = useState(false);
@@ -184,7 +179,6 @@ export default function MapView({
   const [chineseTemperateBorderLoad, setChineseTemperateBorderLoad] = useState(false);
   const [eastEuropeanTaigaBorderLoad, setEastEuropeanTaigaBorderLoad] = useState(false);
   
-  // Individual info states
   const [amazonInfoOpen, setAmazonInfoOpen] = useState(false);
   const [southeastAsianInfoOpen, setSoutheastAsianInfoOpen] = useState(false);
   const [centralAmericanInfoOpen, setCentralAmericanInfoOpen] = useState(false);
@@ -195,7 +189,6 @@ export default function MapView({
   const [chineseTemperateInfoOpen, setChineseTemperateInfoOpen] = useState(false);
   const [eastEuropeanTaigaInfoOpen, setEastEuropeanTaigaInfoOpen] = useState(false);
 
-  // Stats box states
   const [deforestationData, setDeforestationData] = useState<DeforestationData | null>(null);
   const [currentForest, setCurrentForest] = useState<ForestKey | ''>('');
   const [isLoadingData, setIsLoadingData] = useState(false);
@@ -212,7 +205,6 @@ export default function MapView({
     const timeout = setTimeout(() => {
       if (rawYear !== year) {
         setYear(rawYear);
-        // Fetch new data when year changes
         if (currentForest && anyForestClicked) {
           fetchDeforestationData(currentForest, rawYear);
         }
@@ -221,7 +213,6 @@ export default function MapView({
     return () => clearTimeout(timeout);
   }, [rawYear, year, currentForest]);
 
-  // Fetch deforestation data from API
   const fetchDeforestationData = async (forest: string, selectedYear: number) => {
     setIsLoadingData(true);
     try {
@@ -272,14 +263,12 @@ export default function MapView({
     },
   }), []);
 
-  // Check if any forest is clicked
   const anyForestClicked = amazonForestClicked || southeastAsianForestClicked || 
     centralAmericanForestClicked || siberianForestClicked || 
     easternUSForestClicked || westernUSForestClicked ||
     canadianBorealForestClicked || chineseTemperateForestClicked ||
     eastEuropeanTaigaForestClicked;
 
-  // Generic click handler
   const createForestClickHandler = (coords: any[], setForestClicked: any, setInfoOpen: any, setBorderLoad: any, forestKey: ForestKey) => {
     return () => {
       if (mapInstance) {
@@ -309,7 +298,6 @@ export default function MapView({
           setInfoOpen(false);
           setBorderLoad(true);
           setCurrentForest(forestKey);
-          // Fetch data for the selected forest
           fetchDeforestationData(forestKey, year);
           setTimeout(() => {
             setLoadClicked(false);
@@ -319,7 +307,6 @@ export default function MapView({
     };
   };
 
-  // Individual click handlers
   const handleAmazonClick = createForestClickHandler(amazonRainforestCoords, setAmazonForestClicked, setAmazonInfoOpen, setAmazonBorderLoad, 'amazon');
   const handleSoutheastAsianClick = createForestClickHandler(southeastAsianCoords, setSoutheastAsianForestClicked, setSoutheastAsianInfoOpen, setSoutheastAsianBorderLoad, 'southeastAsian');
   const handleCentralAmericanClick = createForestClickHandler(centralAmericanCoords, setCentralAmericanForestClicked, setCentralAmericanInfoOpen, setCentralAmericanBorderLoad, 'centralAmerican');
@@ -332,7 +319,6 @@ export default function MapView({
 
   const handleBack = () => {
     if (mapInstance && defaultViewRef.current) {
-      // Reset all forest states
       setAmazonForestClicked(false);
       setSoutheastAsianForestClicked(false);
       setCentralAmericanForestClicked(false);
@@ -348,7 +334,6 @@ export default function MapView({
       setDeforestationData(null);
       setCurrentForest('');
       
-      // Reset all border loads
       setAmazonBorderLoad(false);
       setSoutheastAsianBorderLoad(false);
       setCentralAmericanBorderLoad(false);
@@ -379,7 +364,6 @@ export default function MapView({
     strokeWeight: 2,
   };
 
-  // Create info card component
 const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClick: any, title: string) => {
   if (!anyForestClicked && infoOpen && mapInstance) {
     const projection = mapInstance.getProjection();
@@ -391,12 +375,10 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
       const topRight = projection.fromLatLngToPoint(bounds.getNorthEast());
       const bottomLeft = projection.fromLatLngToPoint(bounds.getSouthWest());
       
-      // Check if any of the points are null
       if (point && topRight && bottomLeft) {
         const scale = Math.pow(2, mapInstance.getZoom()!);
         const worldPoint = new google.maps.Point(point.x * scale, point.y * scale);
         
-        // Convert to container coordinates
         const container = mapInstance.getDiv();
         const containerBounds = container.getBoundingClientRect();
         
@@ -435,7 +417,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
   return null;
 };
 
-  // Format number with commas
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat().format(Math.round(num));
   };
@@ -452,7 +433,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
         options={mapOptions}
         onLoad={onLoad}
       >
-        {/* Polygons */}
         {amazonBorderLoad && (
           <Polygon paths={amazonRainforestCoords} options={forestPolygonOptions} onClick={handleAmazonClick} />
         )}
@@ -481,7 +461,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
           <Polygon paths={eastEuropeanTaigaCoords} options={forestPolygonOptions} onClick={handleEastEuropeanTaigaClick} />
         )}
 
-        {/* Markers */}
         {!anyForestClicked && (
           <>
             <Marker position={amazonCenter} icon={{ url: '/hansen-forest-images/pin_sprite.png', scaledSize: new google.maps.Size(48, 48), anchor: new google.maps.Point(24, 48) }} onClick={() => setAmazonInfoOpen(true)} />
@@ -496,7 +475,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
           </>
         )}
 
-        {/* Info Cards */}
         {createInfoCard(amazonCenter, amazonInfoOpen, setAmazonInfoOpen, handleAmazonClick, "Amazon Rainforest")}
         {createInfoCard(southeastAsianCenter, southeastAsianInfoOpen, setSoutheastAsianInfoOpen, handleSoutheastAsianClick, "Southeast Asian Forest")}
         {createInfoCard(centralAmericanCenter, centralAmericanInfoOpen, setCentralAmericanInfoOpen, handleCentralAmericanClick, "Mesoamerican Tropical Forests")}
@@ -507,7 +485,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
         {createInfoCard(chineseTemperateCenter, chineseTemperateInfoOpen, setChineseTemperateInfoOpen, handleChineseTemperateClick, "Chinese Temperate Forests")}
         {createInfoCard(eastEuropeanTaigaCenter, eastEuropeanTaigaInfoOpen, setEastEuropeanTaigaInfoOpen, handleEastEuropeanTaigaClick, "East European Taiga")}
 
-        {/* Ground overlays */}
         <>
           <GroundOverlay
             key={`overlay-${year}-NW`}
@@ -536,13 +513,11 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
         </>
       </GoogleMap>
 
-      {/* Modern Stats Box - Redesigned to match landing page */}
       {anyForestClicked && showStats && (
         <div className={`absolute top-5 right-5 w-80 z-50 transition-all duration-700 ease-out transform ${
           showStats ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-full opacity-0 scale-95'
         }`}>
           <div className="bg-black/50 backdrop-blur-sm rounded-xl border border-green-500/30 shadow-2xl overflow-hidden">
-            {/* Header */}
             <div className="bg-gradient-to-r from-green-950/30 to-green-900/20 p-3 border-b border-green-500/20">
               <div className="flex items-center justify-between">
                 <div>
@@ -557,7 +532,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
               </div>
             </div>
 
-            {/* Content */}
             <div className="p-3 space-y-3">
               {isLoadingData ? (
                 <div className="flex items-center justify-center py-6">
@@ -566,7 +540,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
                 </div>
               ) : deforestationData ? (
                 <>
-                  {/* Key Statistics */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-green-950/20 border border-green-500/30 p-2 rounded-lg">
                       <div className="text-lg font-bold text-green-400 mb-1">
@@ -582,7 +555,7 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
                     </div>
                   </div>
 
-                  {/* Yearly Change */}
+
                   <div className="bg-green-950/20 border border-green-500/30 p-2 rounded-lg">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-300 text-sm">Yearly Change</span>
@@ -597,7 +570,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
                     </div>
                   </div>
 
-                  {/* Cumulative Data */}
                   <div className="bg-green-950/20 border border-green-500/30 p-2 rounded-lg">
                     <div className="text-xs text-gray-300 mb-1">Total Cumulative Loss</div>
                     <div className="text-sm font-bold text-green-400">
@@ -605,7 +577,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
                     </div>
                   </div>
 
-                  {/* Fun Facts */}
                   <div className="space-y-2">
                     <h4 className="text-xs font-semibold text-green-300 uppercase tracking-wide">Impact Comparisons</h4>
                     <div className="space-y-1 max-h-24 overflow-y-auto">
@@ -620,7 +591,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
                     </div>
                   </div>
 
-                  {/* Summary */}
                   <div className="bg-green-950/20 border border-green-500/30 p-2 rounded-lg">
                     <div className="text-xs text-green-300 uppercase tracking-wide mb-1">Summary</div>
                     <p className="text-xs text-gray-300 leading-relaxed">
@@ -634,7 +604,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
         </div>
       )}
 
-      {/* Year slider */}
       {anyForestClicked && (
         <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-[320px] z-50 bg-black/60 p-4 rounded-xl shadow-lg border border-gray-700">
           <div className="flex justify-between items-center text-white text-sm mb-2">
@@ -689,7 +658,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
         </div>
       )}
 
-      {/* Back button */}
       {anyForestClicked && (
         <button
           className="absolute top-5 left-5 z-50 bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
@@ -700,7 +668,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
       )}
 
       
-      {/* Info Card - Bottom Center */}
       {!anyForestClicked && (
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50">
           <div className="bg-green-950/30 border border-green-500/30 backdrop-blur-sm rounded-lg px-4 py-2 flex items-center space-x-2">

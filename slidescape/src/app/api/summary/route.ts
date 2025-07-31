@@ -1,24 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 
-// Simple in-memory cache to reduce API calls
 const responseCache = new Map<string, any>();
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_TTL = 24 * 60 * 60 * 1000; 
 
 
-// Generate cache key
 function getCacheKey(forest: string, year: string): string {
   return `${forest.toLowerCase()}-${year}`;
 }
 
 
-// Check if cached response is still valid
 function isValidCache(timestamp: number): boolean {
   return Date.now() - timestamp < CACHE_TTL;
 }
 
 
-// Retry function with exponential backoff
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   maxRetries: number = 2,
@@ -44,7 +40,6 @@ async function retryWithBackoff<T>(
 }
 
 
-// Gemini API call (your existing setup)
 async function callGemini(prompt: string): Promise<string> {
   if (!process.env.GEMINI_API_KEY) {
     throw new Error('Gemini API key not configured');
@@ -87,7 +82,6 @@ async function callGemini(prompt: string): Promise<string> {
 }
 
 
-// Groq API call (VERY FAST & FREE!)
 async function callGroq(prompt: string): Promise<string> {
   if (!process.env.GROQ_API_KEY) {
     throw new Error('Groq API key not configured');
@@ -101,7 +95,7 @@ async function callGroq(prompt: string): Promise<string> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'llama3-8b-8192', // Free tier
+      model: 'llama3-8b-8192', 
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.1,
       max_tokens: 2000,
@@ -127,7 +121,6 @@ async function callGroq(prompt: string): Promise<string> {
 }
 
 
-// Together AI API call (FREE TIER!)
 async function callTogether(prompt: string): Promise<string> {
   if (!process.env.TOGETHER_API_KEY) {
     throw new Error('Together API key not configured');
@@ -171,14 +164,12 @@ async function callTogether(prompt: string): Promise<string> {
 
 
 
-// OpenRouter API call (FREE MODELS!)
 async function callOpenRouter(prompt: string): Promise<string> {
   if (!process.env.OPENROUTER_API_KEY) {
     throw new Error('OpenRouter API key not configured');
   }
 
 
-  // Free models available on OpenRouter
   const freeModels = [
     'microsoft/dialoGPT-medium',
     'huggingfaceh4/zephyr-7b-beta:free',
@@ -194,8 +185,8 @@ async function callOpenRouter(prompt: string): Promise<string> {
         headers: {
           'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://yourapp.com', // Required
-          'X-Title': 'Deforestation App', // Optional
+          'HTTP-Referer': 'https://yourapp.com', 
+          'X-Title': 'Deforestation App', 
         },
         body: JSON.stringify({
           model: model,
@@ -211,7 +202,7 @@ async function callOpenRouter(prompt: string): Promise<string> {
         const content = data.choices?.[0]?.message?.content;
        
         if (content) {
-          console.log(`✅ OpenRouter ${model} succeeded`);
+          console.log(`OpenRouter ${model} succeeded`);
           return content;
         }
       }
@@ -230,12 +221,10 @@ async function callOpenRouter(prompt: string): Promise<string> {
 
 
 
-// Fallback to a simple hardcoded response (ALWAYS WORKS!)
 async function getFallbackResponse(forest: string, year: string): Promise<string> {
-  // This ensures your app never completely fails
   const yearNum = parseInt(year);
   const baseArea = Math.floor(Math.random() * 5000) + 1000;
-  const carbonLoss = baseArea * 200; // Rough estimate
+  const carbonLoss = baseArea * 200; 
  
   const response = {
     deforestation_area_km2: baseArea,
@@ -253,16 +242,13 @@ async function getFallbackResponse(forest: string, year: string): Promise<string
   return JSON.stringify(response);
 }
 
-
-// Main function that tries multiple providers
 async function getDeforestationData(forest: string, year: string): Promise<string> {
   const cacheKey = getCacheKey(forest, year);
  
-  // Check cache first (saves API calls!)
   if (responseCache.has(cacheKey)) {
     const cached = responseCache.get(cacheKey);
     if (isValidCache(cached.timestamp)) {
-      console.log('✅ Returning cached response (FREE!)');
+      console.log('Returning cached response (FREE!)');
       return cached.data;
     } else {
       responseCache.delete(cacheKey);
@@ -296,7 +282,6 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanations)
 `;
 
 
-  // Try providers in order of preference
   const providers = [
     {
       name: 'Gemini Pro',
@@ -321,7 +306,7 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanations)
     {
       name: 'Fallback Response',
       fn: () => getFallbackResponse(forest, year),
-      available: true // Always available
+      available: true 
     }
   ];
 
@@ -332,18 +317,18 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanations)
 
   for (const provider of providers) {
     if (!provider.available) {
-      console.log(`⏭️  Skipping ${provider.name} (no API key configured)`);
+      console.log(`⏭Skipping ${provider.name} (no API key configured)`);
       continue;
     }
 
 
     try {
-      console.log(`🆓 Trying ${provider.name}...`);
+      console.log(`Trying ${provider.name}...`);
      
       result = await retryWithBackoff(provider.fn, 2, 1000);
      
       if (result) {
-        console.log(`✅ ${provider.name} succeeded`);
+        console.log(`${provider.name} succeeded`);
        
         // Cache the result to save future API calls
         responseCache.set(cacheKey, {
@@ -354,7 +339,7 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanations)
         return result;
       }
     } catch (error: any) {
-      console.log(`❌ ${provider.name} failed:`, error.message);
+      console.log(`${provider.name} failed:`, error.message);
       lastError = error;
      
       // Continue to next provider
@@ -382,7 +367,7 @@ export async function GET(request: NextRequest) {
 
 
   try {
-    console.log(`🌳 Getting deforestation data for ${forest} ${year} with multiple AI providers...`);
+    console.log(`Getting deforestation data for ${forest} ${year} with multiple AI providers...`);
    
     const rawContent = await getDeforestationData(forest, year);
    
@@ -394,7 +379,6 @@ export async function GET(request: NextRequest) {
     console.log('Raw AI content:', rawContent);
 
 
-    // Clean the content - remove markdown code blocks if present
     let cleanContent = rawContent.trim();
     if (cleanContent.startsWith('```json')) {
       cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
@@ -402,14 +386,11 @@ export async function GET(request: NextRequest) {
       cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
     }
 
-    //Remove commas in numbers
     cleanContent = cleanContent.replace(/(\d),(?=\d)/g, '$1');
 
-    // Try parsing the cleaned AI response as JSON
     try {
       const parsed = JSON.parse(cleanContent);
      
-      // Validate the required fields
       const requiredFields = [
         'deforestation_area_km2',
         'carbon_loss_tonnes',
