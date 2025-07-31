@@ -223,6 +223,7 @@ export default function MapView({
     scrollwheel: false,
     disableDoubleClickZoom: true,
     zoomControl: false,
+    panControl: false,
     gestureHandling: 'none',
     restriction: {
       latLngBounds: {
@@ -669,7 +670,7 @@ export default function MapView({
           className="absolute top-5 left-5 z-50 bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
           onClick={handleBack}
         >
-          ← Back
+          ← Back to World Map
         </button>
       )}
 
