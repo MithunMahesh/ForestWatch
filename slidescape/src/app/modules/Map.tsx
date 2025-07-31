@@ -19,13 +19,16 @@ const containerStyle = {
 const defaultCenter = { lat: 0, lng: 0 };
 const libraries: Libraries = ['places'];
 
-// Forest Centers (removed Congo, Madagascar, Canadian, Cerrado)
+// Forest Centers (added Canadian Boreal, Chinese Temperate, East European Taiga)
 const amazonCenter = { lat: -4.5, lng: -63 };
 const southeastAsianCenter = { lat: -2.5, lng: 118.0 };
 const centralAmericanCenter = { lat: 14.0, lng: -87.0 };
 const siberianCenter = { lat: 52.0, lng: 100.0 };
-const easternUSCenter = { lat: 38.0, lng: -80.0 };
+const easternUSCenter = { lat: 36.0, lng: -72.0 };
 const westernUSCenter = { lat: 45.0, lng: -122.0 };
+const canadianBorealCenter = { lat: 50.0, lng: -100.0 };
+const chineseTemperateCenter = { lat: 25.5, lng: 112.0 };
+const eastEuropeanTaigaCenter = { lat: 51.0, lng: 50.0 };
 
 const amazonRainforestCoords = [
   { lat: 5.2, lng: -60.0 },
@@ -75,12 +78,11 @@ const siberianCoords = [
 ];
 
 const easternUSCoords = [
-  { lat: 47.0, lng: -95.0 },
-  { lat: 45.0, lng: -68.0 },
-  { lat: 33.0, lng: -70.0 },
-  { lat: 25.0, lng: -80.0 },
-  { lat: 30.0, lng: -95.0 },
-  { lat: 47.0, lng: -95.0 },
+  { lat: 45.0, lng: -70.0 },
+  { lat: 42.0, lng: -57.0 },
+  { lat: 35.0, lng: -70.0 },
+  { lat: 27.0, lng: -80.0 },
+  { lat: 37.0, lng: -85.0 },
 ];
 
 const westernUSCoords = [
@@ -93,6 +95,33 @@ const westernUSCoords = [
   { lat: 42.5, lng: -124.0 },
 ];
 
+const canadianBorealCoords = [
+  { lat: 58.0, lng: -123.0 },
+  { lat: 55.0, lng: -100.0 },
+  { lat: 50.0, lng: -80.0 },
+  { lat: 45.0, lng: -80.0 },
+  { lat: 42.0, lng: -100.0 },
+  { lat: 48.0, lng: -120.0 },
+];
+
+const chineseTemperateCoords = [
+  { lat: 31.0, lng: 103.0 },
+  { lat: 31.0, lng: 120.0 },
+  { lat: 24.0, lng: 122.0 },
+  { lat: 18.0, lng: 115.0 },
+  { lat: 21.0, lng: 105.0 },
+  { lat: 25.0, lng: 102.0 },
+];
+
+const eastEuropeanTaigaCoords = [
+  { lat: 55.0, lng:  30.0 },
+  { lat: 57.0, lng:  60.0 },
+  { lat: 50.0, lng:  70.0 },
+  { lat: 45.0, lng:  60.0 },
+  { lat: 45.0, lng:  40.0 },
+  { lat: 50.0, lng:  30.0 },
+];
+
 // Forest name mapping
 const forestNames = {
   amazon: 'Amazon Rainforest',
@@ -101,6 +130,9 @@ const forestNames = {
   siberian: 'Siberian Taiga',
   easternUS: 'Eastern Deciduous Forests',
   westernUS: 'Pacific Northwest Forests',
+  canadianBoreal: 'Canadian Boreal Forest',
+  chineseTemperate: 'Chinese Temperate Forests',
+  eastEuropeanTaiga: 'East European Taiga',
 } as const;
 
 type ForestKey = keyof typeof forestNames;
@@ -128,13 +160,16 @@ export default function MapView({
   const [year, setYear] = useState(2008);
   const [rawYear, setRawYear] = useState(2008);
   
-  // Individual states for remaining forests
+  // Individual states for all forests
   const [amazonForestClicked, setAmazonForestClicked] = useState(false);
   const [southeastAsianForestClicked, setSoutheastAsianForestClicked] = useState(false);
   const [centralAmericanForestClicked, setCentralAmericanForestClicked] = useState(false);
   const [siberianForestClicked, setSiberianForestClicked] = useState(false);
   const [easternUSForestClicked, setEasternUSForestClicked] = useState(false);
   const [westernUSForestClicked, setWesternUSForestClicked] = useState(false);
+  const [canadianBorealForestClicked, setCanadianBorealForestClicked] = useState(false);
+  const [chineseTemperateForestClicked, setChineseTemperateForestClicked] = useState(false);
+  const [eastEuropeanTaigaForestClicked, setEastEuropeanTaigaForestClicked] = useState(false);
   
   const [loadClicked, setLoadClicked] = useState(false);
   
@@ -145,6 +180,9 @@ export default function MapView({
   const [siberianBorderLoad, setSiberianBorderLoad] = useState(false);
   const [easternUSBorderLoad, setEasternUSBorderLoad] = useState(false);
   const [westernUSBorderLoad, setWesternUSBorderLoad] = useState(false);
+  const [canadianBorealBorderLoad, setCanadianBorealBorderLoad] = useState(false);
+  const [chineseTemperateBorderLoad, setChineseTemperateBorderLoad] = useState(false);
+  const [eastEuropeanTaigaBorderLoad, setEastEuropeanTaigaBorderLoad] = useState(false);
   
   // Individual info states
   const [amazonInfoOpen, setAmazonInfoOpen] = useState(false);
@@ -153,6 +191,9 @@ export default function MapView({
   const [siberianInfoOpen, setSiberianInfoOpen] = useState(false);
   const [easternUSInfoOpen, setEasternUSInfoOpen] = useState(false);
   const [westernUSInfoOpen, setWesternUSInfoOpen] = useState(false);
+  const [canadianBorealInfoOpen, setCanadianBorealInfoOpen] = useState(false);
+  const [chineseTemperateInfoOpen, setChineseTemperateInfoOpen] = useState(false);
+  const [eastEuropeanTaigaInfoOpen, setEastEuropeanTaigaInfoOpen] = useState(false);
 
   // Stats box states
   const [deforestationData, setDeforestationData] = useState<DeforestationData | null>(null);
@@ -234,7 +275,9 @@ export default function MapView({
   // Check if any forest is clicked
   const anyForestClicked = amazonForestClicked || southeastAsianForestClicked || 
     centralAmericanForestClicked || siberianForestClicked || 
-    easternUSForestClicked || westernUSForestClicked;
+    easternUSForestClicked || westernUSForestClicked ||
+    canadianBorealForestClicked || chineseTemperateForestClicked ||
+    eastEuropeanTaigaForestClicked;
 
   // Generic click handler
   const createForestClickHandler = (coords: any[], setForestClicked: any, setInfoOpen: any, setBorderLoad: any, forestKey: ForestKey) => {
@@ -259,6 +302,8 @@ export default function MapView({
           maxZoom: 5,
         });
 
+        setLoadClicked(true);
+
         setTimeout(() => {
           setForestClicked(true);
           setInfoOpen(false);
@@ -266,6 +311,9 @@ export default function MapView({
           setCurrentForest(forestKey);
           // Fetch data for the selected forest
           fetchDeforestationData(forestKey, year);
+          setTimeout(() => {
+            setLoadClicked(false);
+          }, 150);
         }, 200);
       }
     };
@@ -278,6 +326,9 @@ export default function MapView({
   const handleSiberianClick = createForestClickHandler(siberianCoords, setSiberianForestClicked, setSiberianInfoOpen, setSiberianBorderLoad, 'siberian');
   const handleEasternUSClick = createForestClickHandler(easternUSCoords, setEasternUSForestClicked, setEasternUSInfoOpen, setEasternUSBorderLoad, 'easternUS');
   const handleWesternUSClick = createForestClickHandler(westernUSCoords, setWesternUSForestClicked, setWesternUSInfoOpen, setWesternUSBorderLoad, 'westernUS');
+  const handleCanadianBorealClick = createForestClickHandler(canadianBorealCoords, setCanadianBorealForestClicked, setCanadianBorealInfoOpen, setCanadianBorealBorderLoad, 'canadianBoreal');
+  const handleChineseTemperateClick = createForestClickHandler(chineseTemperateCoords, setChineseTemperateForestClicked, setChineseTemperateInfoOpen, setChineseTemperateBorderLoad, 'chineseTemperate');
+  const handleEastEuropeanTaigaClick = createForestClickHandler(eastEuropeanTaigaCoords, setEastEuropeanTaigaForestClicked, setEastEuropeanTaigaInfoOpen, setEastEuropeanTaigaBorderLoad, 'eastEuropeanTaiga');
 
   const handleBack = () => {
     if (mapInstance && defaultViewRef.current) {
@@ -288,6 +339,9 @@ export default function MapView({
       setSiberianForestClicked(false);
       setEasternUSForestClicked(false);
       setWesternUSForestClicked(false);
+      setCanadianBorealForestClicked(false);
+      setChineseTemperateForestClicked(false);
+      setEastEuropeanTaigaForestClicked(false);
       
       setLoadClicked(true);
       setShowStats(false);
@@ -301,6 +355,9 @@ export default function MapView({
       setSiberianBorderLoad(false);
       setEasternUSBorderLoad(false);
       setWesternUSBorderLoad(false);
+      setCanadianBorealBorderLoad(false);
+      setChineseTemperateBorderLoad(false);
+      setEastEuropeanTaigaBorderLoad(false);
 
       setTimeout(() => {
         mapInstance.setOptions(mapOptions);
@@ -309,8 +366,8 @@ export default function MapView({
 
         setTimeout(() => {
           setLoadClicked(false);
-        }, 500);
-      }, 400);
+        }, 800);
+      }, 600);
     }
   };
 
@@ -323,35 +380,60 @@ export default function MapView({
   };
 
   // Create info card component
-  const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClick: any, title: string) => {
-    return !anyForestClicked && infoOpen && (
-      <>
-        <div 
-          className="fixed inset-0 z-40"
-          onClick={() => setInfoOpen(false)}
-        />
-        <div 
-          className="absolute z-50 bg-white rounded-lg shadow-lg border-2 border-gray-300 p-3 w-[140px]"
-          style={{
-            left: `${((center.lng + 170) / 360) * 100}%`,
-            top: `${((105 - center.lat) / 180) * 100}%`,
-            transform: 'translate(-50%, -100%)',
-            marginTop: '-60px'
-          }}
-        >
-          <div className="text-sm text-black font-semibold mb-2">
-            {title}
-          </div>
-          <button
-            onClick={onClick}
-            className="bg-green-500 text-black px-3 py-1 rounded text-xs font-medium hover:bg-green-600 transition w-full"
-          >
-            Zoom In
-          </button>
-        </div>
-      </>
-    );
-  };
+const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClick: any, title: string) => {
+  if (!anyForestClicked && infoOpen && mapInstance) {
+    const projection = mapInstance.getProjection();
+    const bounds = mapInstance.getBounds();
+    
+    if (projection && bounds) {
+      const latLng = new google.maps.LatLng(center.lat - 10, center.lng);
+      const point = projection.fromLatLngToPoint(latLng);
+      const topRight = projection.fromLatLngToPoint(bounds.getNorthEast());
+      const bottomLeft = projection.fromLatLngToPoint(bounds.getSouthWest());
+      
+      // Check if any of the points are null
+      if (point && topRight && bottomLeft) {
+        const scale = Math.pow(2, mapInstance.getZoom()!);
+        const worldPoint = new google.maps.Point(point.x * scale, point.y * scale);
+        
+        // Convert to container coordinates
+        const container = mapInstance.getDiv();
+        const containerBounds = container.getBoundingClientRect();
+        
+        const x = ((worldPoint.x - bottomLeft.x * scale) / ((topRight.x - bottomLeft.x) * scale)) * containerBounds.width;
+        const y = ((worldPoint.y - topRight.y * scale) / ((bottomLeft.y - topRight.y) * scale)) * containerBounds.height;
+        
+        return (
+          <>
+            <div 
+              className="fixed inset-0 z-40"
+              onClick={() => setInfoOpen(false)}
+            />
+            <div 
+              className="absolute z-50 bg-white rounded-lg shadow-lg border-2 border-gray-300 p-3 w-[140px]"
+              style={{
+                left: `${x}px`,
+                top: `${y - 60}px`,
+                transform: 'translate(-50%, -100%)',
+              }}
+            >
+              <div className="text-sm text-black font-semibold mb-2">
+                {title}
+              </div>
+              <button
+                onClick={onClick}
+                className="bg-green-500 text-black px-3 py-1 rounded text-xs font-medium hover:bg-green-600 transition w-full"
+              >
+                Zoom In
+              </button>
+            </div>
+          </>
+        );
+      }
+    }
+  }
+  return null;
+};
 
   // Format number with commas
   const formatNumber = (num: number) => {
@@ -389,6 +471,15 @@ export default function MapView({
         {westernUSBorderLoad && (
           <Polygon paths={westernUSCoords} options={forestPolygonOptions} onClick={handleWesternUSClick} />
         )}
+        {canadianBorealBorderLoad && (
+          <Polygon paths={canadianBorealCoords} options={forestPolygonOptions} onClick={handleCanadianBorealClick} />
+        )}
+        {chineseTemperateBorderLoad && (
+          <Polygon paths={chineseTemperateCoords} options={forestPolygonOptions} onClick={handleChineseTemperateClick} />
+        )}
+        {eastEuropeanTaigaBorderLoad && (
+          <Polygon paths={eastEuropeanTaigaCoords} options={forestPolygonOptions} onClick={handleEastEuropeanTaigaClick} />
+        )}
 
         {/* Markers */}
         {!anyForestClicked && (
@@ -399,6 +490,9 @@ export default function MapView({
             <Marker position={siberianCenter} icon={{ url: '/hansen-forest-images/pin_sprite.png', scaledSize: new google.maps.Size(48, 48), anchor: new google.maps.Point(24, 48) }} onClick={() => setSiberianInfoOpen(true)} />
             <Marker position={easternUSCenter} icon={{ url: '/hansen-forest-images/pin_sprite.png', scaledSize: new google.maps.Size(48, 48), anchor: new google.maps.Point(24, 48) }} onClick={() => setEasternUSInfoOpen(true)} />
             <Marker position={westernUSCenter} icon={{ url: '/hansen-forest-images/pin_sprite.png', scaledSize: new google.maps.Size(48, 48), anchor: new google.maps.Point(24, 48) }} onClick={() => setWesternUSInfoOpen(true)} />
+            <Marker position={canadianBorealCenter} icon={{ url: '/hansen-forest-images/pin_sprite.png', scaledSize: new google.maps.Size(48, 48), anchor: new google.maps.Point(24, 48) }} onClick={() => setCanadianBorealInfoOpen(true)} />
+            <Marker position={chineseTemperateCenter} icon={{ url: '/hansen-forest-images/pin_sprite.png', scaledSize: new google.maps.Size(48, 48), anchor: new google.maps.Point(24, 48) }} onClick={() => setChineseTemperateInfoOpen(true)} />
+            <Marker position={eastEuropeanTaigaCenter} icon={{ url: '/hansen-forest-images/pin_sprite.png', scaledSize: new google.maps.Size(48, 48), anchor: new google.maps.Point(24, 48) }} onClick={() => setEastEuropeanTaigaInfoOpen(true)} />
           </>
         )}
 
@@ -409,6 +503,9 @@ export default function MapView({
         {createInfoCard(siberianCenter, siberianInfoOpen, setSiberianInfoOpen, handleSiberianClick, "Siberian Taiga")}
         {createInfoCard(easternUSCenter, easternUSInfoOpen, setEasternUSInfoOpen, handleEasternUSClick, "Eastern Deciduous Forests")}
         {createInfoCard(westernUSCenter, westernUSInfoOpen, setWesternUSInfoOpen, handleWesternUSClick, "Pacific Northwest Forests")}
+        {createInfoCard(canadianBorealCenter, canadianBorealInfoOpen, setCanadianBorealInfoOpen, handleCanadianBorealClick, "Canadian Boreal Forest")}
+        {createInfoCard(chineseTemperateCenter, chineseTemperateInfoOpen, setChineseTemperateInfoOpen, handleChineseTemperateClick, "Chinese Temperate Forests")}
+        {createInfoCard(eastEuropeanTaigaCenter, eastEuropeanTaigaInfoOpen, setEastEuropeanTaigaInfoOpen, handleEastEuropeanTaigaClick, "East European Taiga")}
 
         {/* Ground overlays */}
         <>
