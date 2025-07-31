@@ -153,7 +153,6 @@ export default function MapView({
   center = defaultCenter,
   zoom = 3,
 }: MapViewProps) {
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyBmvbZOaiCP7xRKsL4p3AJkP3hhsoyTyNs",
     libraries,
@@ -202,7 +201,6 @@ export default function MapView({
 
   const defaultViewRef = useRef<{ center: google.maps.LatLngLiteral; zoom: number } | null>(null);
 
-  // Computed values using useMemo
   const anyForestClicked = useMemo(() => {
     return amazonForestClicked || southeastAsianForestClicked || 
       centralAmericanForestClicked || siberianForestClicked || 
@@ -237,7 +235,6 @@ export default function MapView({
     },
   }), []);
 
-  // useEffect hooks
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (rawYear !== year) {
@@ -250,7 +247,6 @@ export default function MapView({
     return () => clearTimeout(timeout);
   }, [rawYear, year, currentForest, anyForestClicked]);
 
-  // useCallback hooks
   const onLoad = useCallback((map: google.maps.Map) => {
     setMapInstance(map);
     defaultViewRef.current = {
@@ -421,11 +417,10 @@ export default function MapView({
     return new Intl.NumberFormat().format(Math.round(num));
   }, []);
 
-  // Add these logs
   console.log('isLoaded:', isLoaded);
   console.log('loadError:', loadError);
 
-  // NOW handle conditional returns AFTER all hooks are called
+
   if (loadError) {
     console.error('Load error details:', loadError);
     return <div>Map failed to load: {loadError.message}</div>;
@@ -694,7 +689,6 @@ export default function MapView({
   );
 }
 
-// Add the missing forestPolygonOptions constant
 const forestPolygonOptions = {
   fillColor: '#ff7b0020',
   fillOpacity: 0.3,

@@ -134,7 +134,7 @@ async function callTogether(prompt: string): Promise<string> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'meta-llama/Llama-3-8b-chat-hf', // Free model
+      model: 'meta-llama/Llama-3-8b-chat-hf', 
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.1,
       max_tokens: 2000,
@@ -230,7 +230,6 @@ async function getFallbackResponse(forest: string, year: string): Promise<string
     deforestation_area_km2: baseArea,
     carbon_loss_tonnes: carbonLoss,
     cumulative_deforestation_km2: baseArea * (2025 - yearNum),
-    yearly_change_percent: Math.floor(Math.random() * 20) - 10,
     cool_facts: [
       `That's equivalent to ${Math.floor(baseArea / 0.007)} football fields`,
       `The carbon released equals ${Math.floor(carbonLoss / 4.6)} cars driven for a year`,
@@ -330,7 +329,6 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanations)
       if (result) {
         console.log(`${provider.name} succeeded`);
        
-        // Cache the result to save future API calls
         responseCache.set(cacheKey, {
           data: result,
           timestamp: Date.now()
@@ -342,7 +340,6 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanations)
       console.log(`${provider.name} failed:`, error.message);
       lastError = error;
      
-      // Continue to next provider
       continue;
     }
   }
