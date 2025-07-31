@@ -202,16 +202,62 @@ export default function MapView({
 
   const defaultViewRef = useRef<{ center: google.maps.LatLngLiteral; zoom: number } | null>(null);
 
-  // Computed values using useMemo
-  const anyForestClicked = useMemo(() => {
-    return amazonForestClicked || southeastAsianForestClicked || 
-      centralAmericanForestClicked || siberianForestClicked || 
-      easternUSForestClicked || westernUSForestClicked ||
-      canadianBorealForestClicked || chineseTemperateForestClicked ||
-      eastEuropeanTaigaForestClicked;
-  }, [amazonForestClicked, southeastAsianForestClicked, centralAmericanForestClicked, 
-      siberianForestClicked, easternUSForestClicked, westernUSForestClicked,
-      canadianBorealForestClicked, chineseTemperateForestClicked, eastEuropeanTaigaForestClicked]);
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: "AIzaSyBmvbZOaiCP7xRKsL4p3AJkP3hhsoyTyNs",
+    libraries,
+  });
+
+    // Add these logs
+  console.log('isLoaded:', isLoaded);
+  console.log('loadError:', loadError);
+
+  if (loadError) {
+    console.error('Load error details:', loadError);
+    return <div>Map failed to load: {loadError.message}</div>;
+  }
+
+  if (!isLoaded) {
+    console.log('Still loading...');
+    return <div>Loading map...</div>;
+  }
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (rawYear !== year) {
+        setYear(rawYear);
+        if (currentForest && anyForestClicked) {
+          fetchDeforestationData(currentForest, rawYear);
+        }
+      }
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [rawYear, year, currentForest]);
+
+  const fetchDeforestationData = async (forest: string, selectedYear: number) => {
+    setIsLoadingData(true);
+    try {
+      const response = await fetch(`/api/summary?forest=${forest}&year=${selectedYear}`);
+      if (response.ok) {
+        const data = await response.json();
+        setDeforestationData(data);
+        setShowStats(true);
+      } else {
+        console.error('Failed to fetch deforestation data');
+      }
+    } catch (error) {
+      console.error('Error fetching deforestation data:', error);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  const onLoad = useCallback((map: google.maps.Map) => {
+    setMapInstance(map);
+    defaultViewRef.current = {
+      center: map.getCenter()?.toJSON() || defaultCenter,
+      zoom: map.getZoom() || zoom,
+    };
+  }, [zoom]);
 
   const mapOptions = useMemo(() => ({
     tilt: 45,
@@ -693,12 +739,3 @@ export default function MapView({
     </div>
   );
 }
-
-// Add the missing forestPolygonOptions constant
-const forestPolygonOptions = {
-  fillColor: '#ff7b0020',
-  fillOpacity: 0.3,
-  strokeColor: '#aa3e00ff',
-  strokeOpacity: 0.8,
-  strokeWeight: 2,
-};
