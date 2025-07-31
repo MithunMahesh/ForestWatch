@@ -1,9 +1,9 @@
 'use client';
 
-import { ArrowRight, Globe, TrendingDown, Users, Leaf, ExternalLink, Info } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useState } from 'react'
+import { ArrowRight, Globe, TrendingDown, Users, Leaf, ExternalLink, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 
 const MapView = dynamic(() => import('./modules/Map'), {
@@ -12,16 +12,33 @@ const MapView = dynamic(() => import('./modules/Map'), {
 
 export default function Home() {
   const [showMap, setShowMap] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleViewData = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      setShowMap(true);
+    }, 700);
+  };
+
+  const handleBackToLanding = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      setShowMap(false);
+    }, 500);
+  };
 
   if (showMap) {
     return (
       <div className="w-full h-screen bg-black text-white fixed inset-0 overflow-hidden">
-        {/* Small ForestWatch logo and back button in bottom left */}
+        {/* Back button & logo */}
         <div className="absolute bottom-4 left-20 z-50 flex items-center space-x-3">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowMap(false)}
+            onClick={handleBackToLanding}
             className="text-green-400 hover:text-green-300 hover:bg-green-500/20 bg-black/30 backdrop-blur-sm rounded-lg px-3 py-2"
           >
             ← Back
@@ -35,6 +52,31 @@ export default function Home() {
             </span>
           </div>
         </div>
+
+        {/* Loading overlay when clicking Back */}
+        {isLoading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
+            <svg
+              className="h-12 w-12 animate-spin text-gray-300"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 50 50"
+              fill="none"
+            >
+              <circle
+                className="opacity-100"
+                cx="25"
+                cy="25"
+                r="20"
+                stroke="currentColor"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeDasharray="100"
+                strokeDashoffset="60"
+              />
+            </svg>
+          </div>
+        )}
+
         <main className="w-full h-full">
           <MapView />
         </main>
@@ -43,7 +85,31 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white relative">
+      {/* Loading overlay when navigating in */}
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
+          <svg
+            className="h-12 w-12 animate-spin text-gray-300"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 50 50"
+            fill="none"
+          >
+            <circle
+              className="opacity-100"
+              cx="25"
+              cy="25"
+              r="20"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeDasharray="100"
+              strokeDashoffset="60"
+            />
+          </svg>
+        </div>
+      )}
+
       {/* Navigation */}
       <nav className="border-b border-green-900/20 bg-black/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -59,9 +125,10 @@ export default function Home() {
             <Button
               variant="outline"
               className="border-green-500 text-green-400 hover:bg-green-500 hover:text-black bg-transparent"
-              onClick={() => setShowMap(true)}
+              onClick={handleViewData}
+              disabled={isLoading}
             >
-              View Data
+              {isLoading ? 'Loading...' : 'View Data'}
             </Button>
           </div>
         </div>
@@ -79,9 +146,11 @@ export default function Home() {
                   <span className="text-red-300">Deforestation Data</span>
                 </div>
                 <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
-                  Track Global{" "}
+                  Track Global{' '}
                   <span className="bg-gradient-to-r from-green-400 via-green-300 to-green-500 bg-clip-text text-transparent">
                     Forest Loss
+                  </span>{' '}
+                  in Real Time
                   </span>{" "}
                   in Multiple Eras
                 </h1>
@@ -90,20 +159,18 @@ export default function Home() {
                   understand trends, and join the fight to protect our planet's lungs.
                 </p>
               </div>
-
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
                   size="lg"
                   className="bg-green-600 hover:bg-green-700 text-black font-semibold px-8 py-4 text-lg"
-                  onClick={() => setShowMap(true)}
+                  onClick={handleViewData}
+                  disabled={isLoading}
                 >
-                  Explore Forest Data
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  {isLoading ? 'Loading...' : 'Explore Forest Data'}
+                  {!isLoading && <ArrowRight className="ml-2 w-5 h-5" />}
                 </Button>
               </div>
-
             </div>
-
             <div className="relative">
               <div className="relative w-full h-96 bg-gradient-to-br from-green-900/20 to-black rounded-2xl border border-green-500/20 overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(34,197,94,0.1),transparent_70%)]" />
@@ -117,7 +184,6 @@ export default function Home() {
                     <div className="w-32 h-32 rounded-full bg-green-500/20 flex items-center justify-center">
                       <Globe className="w-16 h-16 text-green-400" />
                     </div>
-                    {/* Animated red dots representing deforestation */}
                     <div className="absolute top-8 right-12 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                     <div className="absolute bottom-12 left-8 w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse delay-300" />
                     <div className="absolute top-16 left-6 w-1 h-1 bg-red-500 rounded-full animate-pulse delay-700" />
@@ -130,51 +196,51 @@ export default function Home() {
       </section>
 
       {/* How to Use Information Card */}
-      <section className="py-16 bg-gradient-to-b from-black to-green-950/10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Card className="bg-green-950/20 border-green-500/30 backdrop-blur-sm">
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Info className="w-6 h-6 text-green-400" />
-              </div>
-              <CardTitle className="text-2xl text-green-300">How to Use ForestWatch</CardTitle>
-              <CardDescription className="text-gray-300 text-lg">
-                Navigate our interactive platform to explore global deforestation data
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="text-center space-y-3">
-                  <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-                    <span className="text-green-400 font-bold">1</span>
-                  </div>
-                  <h3 className="font-semibold text-green-300">Select a Forest</h3>
-                  <p className="text-sm text-gray-400">
-                    Click on a pin and choose from multiple major forest regions worldwide to explore detailed deforestation data.
-                  </p>
-                </div>
-                <div className="text-center space-y-3">
-                  <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-                    <span className="text-green-400 font-bold">2</span>
-                  </div>
-                  <h3 className="font-semibold text-green-300">View Yearly Trends</h3>
-                  <p className="text-sm text-gray-400">
-                    Move the sliders and analyze year-over-year changes with interactive charts and visual representations.
-                  </p>
-                </div>
-                <div className="text-center space-y-3">
-                  <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
-                    <span className="text-red-400 font-bold">3</span>
-                  </div>
-                  <h3 className="font-semibold text-red-300">Track Red Zones</h3>
-                  <p className="text-sm text-gray-400">
-                    Red dots on our map indicate areas of active deforestation and critical concern.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <section className="py-16 bg-gradient-to-b from-black to-green-950/10">  
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">  
+          <Card className="bg-green-950/20 border-green-500/30 backdrop-blur-sm">  
+            <CardHeader className="text-center">  
+              <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">  
+                <Info className="w-6 h-6 text-green-400" />  
+              </div>  
+              <CardTitle className="text-2xl text-green-300">How to Use ForestWatch</CardTitle>  
+              <CardDescription className="text-gray-300 text-lg">  
+                Navigate our interactive platform to explore global deforestation data  
+              </CardDescription>  
+            </CardHeader>  
+            <CardContent className="space-y-6">  
+              <div className="grid md:grid-cols-3 gap-6">  
+                <div className="text-center space-y-3">  
+                  <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">  
+                    <span className="text-green-400 font-bold">1</span>  
+                  </div>  
+                  <h3 className="font-semibold text-green-300">Select a Forest</h3>  
+                  <p className="text-sm text-gray-400">  
+                    Click on a pin and choose from multiple major forest regions worldwide to explore detailed deforestation data.  
+                  </p>  
+                </div>  
+                <div className="text-center space-y-3">  
+                  <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">  
+                    <span className="text-green-400 font-bold">2</span>  
+                  </div>  
+                  <h3 className="font-semibold text-green-300">View Yearly Trends</h3>  
+                  <p className="text-sm text-gray-400">  
+                    Move the sliders and analyze year-over-year changes with interactive charts and visual representations.  
+                  </p>  
+                </div>  
+                <div className="text-center space-y-3">  
+                  <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">  
+                    <span className="text-red-400 font-bold">3</span>  
+                  </div>  
+                  <h3 className="font-semibold text-red-300">Track Red Zones</h3>  
+                  <p className="text-sm text-gray-400">  
+                    Red dots on our map indicate areas of active deforestation and critical concern.  
+                  </p>  
+                </div>  
+              </div>  
+            </CardContent>  
+          </Card>  
+        </div>  
       </section>
 
       {/* How You Can Help Section */}
