@@ -197,7 +197,7 @@ export default function MapView({
   const defaultViewRef = useRef<{ center: google.maps.LatLngLiteral; zoom: number } | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyA0FV7I_7sMnFSngmNhFZ2eVyesrhO4bxs",
+    googleMapsApiKey: "AIzaSyBmvbZOaiCP7xRKsL4p3AJkP3hhsoyTyNs",
     libraries,
   });
 
