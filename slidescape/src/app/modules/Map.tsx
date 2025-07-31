@@ -643,7 +643,7 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
           </div>
           <input
             type="range"
-            min={2000}
+            min={2001}
             max={2024}
             step={1}
             value={rawYear}
@@ -660,7 +660,7 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
               [&::-webkit-slider-thumb]:shadow-md
               [&::-moz-range-thumb]:appearance-none"
             style={{
-              background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(rawYear - 2000) / 24 * 100}%, #2e2e2e ${(rawYear - 2000) / 24 * 100}%, #2e2e2e 100%)`,
+              background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(rawYear - 2001) / 23 * 100}%, #2e2e2e ${(rawYear - 2001) / 23 * 100}%, #2e2e2e 100%)`,
             }}
           />
         </div>
