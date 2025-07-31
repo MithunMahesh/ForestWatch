@@ -151,8 +151,6 @@ export default function Home() {
                     Forest Loss
                   </span>{' '}
                   in Real Time
-                  </span>{" "}
-                  in Multiple Eras
                 </h1>
                 <p className="text-xl text-gray-300 leading-relaxed max-w-2xl">
                   Monitor deforestation across the world's most critical forest regions. Visualize yearly data,
