@@ -153,6 +153,12 @@ export default function MapView({
   center = defaultCenter,
   zoom = 3,
 }: MapViewProps) {
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: "AIzaSyBmvbZOaiCP7xRKsL4p3AJkP3hhsoyTyNs",
+    libraries,
+  });
+
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [year, setYear] = useState(2008);
   const [rawYear, setRawYear] = useState(2008);
@@ -196,62 +202,16 @@ export default function MapView({
 
   const defaultViewRef = useRef<{ center: google.maps.LatLngLiteral; zoom: number } | null>(null);
 
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyBmvbZOaiCP7xRKsL4p3AJkP3hhsoyTyNs",
-    libraries,
-  });
-
-    // Add these logs
-  console.log('isLoaded:', isLoaded);
-  console.log('loadError:', loadError);
-
-  if (loadError) {
-    console.error('Load error details:', loadError);
-    return <div>Map failed to load: {loadError.message}</div>;
-  }
-
-  if (!isLoaded) {
-    console.log('Still loading...');
-    return <div>Loading map...</div>;
-  }
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (rawYear !== year) {
-        setYear(rawYear);
-        if (currentForest && anyForestClicked) {
-          fetchDeforestationData(currentForest, rawYear);
-        }
-      }
-    }, 400);
-    return () => clearTimeout(timeout);
-  }, [rawYear, year, currentForest]);
-
-  const fetchDeforestationData = async (forest: string, selectedYear: number) => {
-    setIsLoadingData(true);
-    try {
-      const response = await fetch(`/api/summary?forest=${forest}&year=${selectedYear}`);
-      if (response.ok) {
-        const data = await response.json();
-        setDeforestationData(data);
-        setShowStats(true);
-      } else {
-        console.error('Failed to fetch deforestation data');
-      }
-    } catch (error) {
-      console.error('Error fetching deforestation data:', error);
-    } finally {
-      setIsLoadingData(false);
-    }
-  };
-
-  const onLoad = useCallback((map: google.maps.Map) => {
-    setMapInstance(map);
-    defaultViewRef.current = {
-      center: map.getCenter()?.toJSON() || defaultCenter,
-      zoom: map.getZoom() || zoom,
-    };
-  }, [zoom]);
+  // Computed values using useMemo
+  const anyForestClicked = useMemo(() => {
+    return amazonForestClicked || southeastAsianForestClicked || 
+      centralAmericanForestClicked || siberianForestClicked || 
+      easternUSForestClicked || westernUSForestClicked ||
+      canadianBorealForestClicked || chineseTemperateForestClicked ||
+      eastEuropeanTaigaForestClicked;
+  }, [amazonForestClicked, southeastAsianForestClicked, centralAmericanForestClicked, 
+      siberianForestClicked, easternUSForestClicked, westernUSForestClicked,
+      canadianBorealForestClicked, chineseTemperateForestClicked, eastEuropeanTaigaForestClicked]);
 
   const mapOptions = useMemo(() => ({
     tilt: 45,
@@ -277,13 +237,47 @@ export default function MapView({
     },
   }), []);
 
-  const anyForestClicked = amazonForestClicked || southeastAsianForestClicked || 
-    centralAmericanForestClicked || siberianForestClicked || 
-    easternUSForestClicked || westernUSForestClicked ||
-    canadianBorealForestClicked || chineseTemperateForestClicked ||
-    eastEuropeanTaigaForestClicked;
+  // useEffect hooks
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (rawYear !== year) {
+        setYear(rawYear);
+        if (currentForest && anyForestClicked) {
+          fetchDeforestationData(currentForest, rawYear);
+        }
+      }
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [rawYear, year, currentForest, anyForestClicked]);
 
-  const createForestClickHandler = (coords: any[], setForestClicked: any, setInfoOpen: any, setBorderLoad: any, forestKey: ForestKey) => {
+  // useCallback hooks
+  const onLoad = useCallback((map: google.maps.Map) => {
+    setMapInstance(map);
+    defaultViewRef.current = {
+      center: map.getCenter()?.toJSON() || defaultCenter,
+      zoom: map.getZoom() || zoom,
+    };
+  }, [zoom]);
+
+  const fetchDeforestationData = useCallback(async (forest: string, selectedYear: number) => {
+    setIsLoadingData(true);
+    try {
+      const response = await fetch(`/api/summary?forest=${forest}&year=${selectedYear}`);
+      if (response.ok) {
+        const data = await response.json();
+        setDeforestationData(data);
+        setShowStats(true);
+      } else {
+        console.error('Failed to fetch deforestation data');
+      }
+    } catch (error) {
+      console.error('Error fetching deforestation data:', error);
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, []);
+
+  const createForestClickHandler = useCallback((coords: any[], setForestClicked: any, setInfoOpen: any, setBorderLoad: any, forestKey: ForestKey) => {
     return () => {
       if (mapInstance) {
         mapInstance.setOptions({ restriction: undefined, maxZoom: 5 });
@@ -319,19 +313,19 @@ export default function MapView({
         }, 200);
       }
     };
-  };
+  }, [mapInstance, fetchDeforestationData, year]);
 
-  const handleAmazonClick = createForestClickHandler(amazonRainforestCoords, setAmazonForestClicked, setAmazonInfoOpen, setAmazonBorderLoad, 'amazon');
-  const handleSoutheastAsianClick = createForestClickHandler(southeastAsianCoords, setSoutheastAsianForestClicked, setSoutheastAsianInfoOpen, setSoutheastAsianBorderLoad, 'southeastAsian');
-  const handleCentralAmericanClick = createForestClickHandler(centralAmericanCoords, setCentralAmericanForestClicked, setCentralAmericanInfoOpen, setCentralAmericanBorderLoad, 'centralAmerican');
-  const handleSiberianClick = createForestClickHandler(siberianCoords, setSiberianForestClicked, setSiberianInfoOpen, setSiberianBorderLoad, 'siberian');
-  const handleEasternUSClick = createForestClickHandler(easternUSCoords, setEasternUSForestClicked, setEasternUSInfoOpen, setEasternUSBorderLoad, 'easternUS');
-  const handleWesternUSClick = createForestClickHandler(westernUSCoords, setWesternUSForestClicked, setWesternUSInfoOpen, setWesternUSBorderLoad, 'westernUS');
-  const handleCanadianBorealClick = createForestClickHandler(canadianBorealCoords, setCanadianBorealForestClicked, setCanadianBorealInfoOpen, setCanadianBorealBorderLoad, 'canadianBoreal');
-  const handleChineseTemperateClick = createForestClickHandler(chineseTemperateCoords, setChineseTemperateForestClicked, setChineseTemperateInfoOpen, setChineseTemperateBorderLoad, 'chineseTemperate');
-  const handleEastEuropeanTaigaClick = createForestClickHandler(eastEuropeanTaigaCoords, setEastEuropeanTaigaForestClicked, setEastEuropeanTaigaInfoOpen, setEastEuropeanTaigaBorderLoad, 'eastEuropeanTaiga');
+  const handleAmazonClick = useMemo(() => createForestClickHandler(amazonRainforestCoords, setAmazonForestClicked, setAmazonInfoOpen, setAmazonBorderLoad, 'amazon'), [createForestClickHandler]);
+  const handleSoutheastAsianClick = useMemo(() => createForestClickHandler(southeastAsianCoords, setSoutheastAsianForestClicked, setSoutheastAsianInfoOpen, setSoutheastAsianBorderLoad, 'southeastAsian'), [createForestClickHandler]);
+  const handleCentralAmericanClick = useMemo(() => createForestClickHandler(centralAmericanCoords, setCentralAmericanForestClicked, setCentralAmericanInfoOpen, setCentralAmericanBorderLoad, 'centralAmerican'), [createForestClickHandler]);
+  const handleSiberianClick = useMemo(() => createForestClickHandler(siberianCoords, setSiberianForestClicked, setSiberianInfoOpen, setSiberianBorderLoad, 'siberian'), [createForestClickHandler]);
+  const handleEasternUSClick = useMemo(() => createForestClickHandler(easternUSCoords, setEasternUSForestClicked, setEasternUSInfoOpen, setEasternUSBorderLoad, 'easternUS'), [createForestClickHandler]);
+  const handleWesternUSClick = useMemo(() => createForestClickHandler(westernUSCoords, setWesternUSForestClicked, setWesternUSInfoOpen, setWesternUSBorderLoad, 'westernUS'), [createForestClickHandler]);
+  const handleCanadianBorealClick = useMemo(() => createForestClickHandler(canadianBorealCoords, setCanadianBorealForestClicked, setCanadianBorealInfoOpen, setCanadianBorealBorderLoad, 'canadianBoreal'), [createForestClickHandler]);
+  const handleChineseTemperateClick = useMemo(() => createForestClickHandler(chineseTemperateCoords, setChineseTemperateForestClicked, setChineseTemperateInfoOpen, setChineseTemperateBorderLoad, 'chineseTemperate'), [createForestClickHandler]);
+  const handleEastEuropeanTaigaClick = useMemo(() => createForestClickHandler(eastEuropeanTaigaCoords, setEastEuropeanTaigaForestClicked, setEastEuropeanTaigaInfoOpen, setEastEuropeanTaigaBorderLoad, 'eastEuropeanTaiga'), [createForestClickHandler]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (mapInstance && defaultViewRef.current) {
       setAmazonForestClicked(false);
       setSoutheastAsianForestClicked(false);
@@ -368,75 +362,79 @@ export default function MapView({
         }, 800);
       }, 600);
     }
-  };
+  }, [mapInstance, mapOptions]);
 
-  const forestPolygonOptions = {
-    fillColor: '#ff7b0020',
-    fillOpacity: 0.3,
-    strokeColor: '#aa3e00ff',
-    strokeOpacity: 0.8,
-    strokeWeight: 2,
-  };
-
-const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClick: any, title: string) => {
-  if (!anyForestClicked && infoOpen && mapInstance) {
-    const projection = mapInstance.getProjection();
-    const bounds = mapInstance.getBounds();
-    
-    if (projection && bounds) {
-      const latLng = new google.maps.LatLng(center.lat - 10, center.lng);
-      const point = projection.fromLatLngToPoint(latLng);
-      const topRight = projection.fromLatLngToPoint(bounds.getNorthEast());
-      const bottomLeft = projection.fromLatLngToPoint(bounds.getSouthWest());
+  const createInfoCard = useCallback((center: any, infoOpen: boolean, setInfoOpen: any, onClick: any, title: string) => {
+    if (!anyForestClicked && infoOpen && mapInstance) {
+      const projection = mapInstance.getProjection();
+      const bounds = mapInstance.getBounds();
       
-      if (point && topRight && bottomLeft) {
-        const scale = Math.pow(2, mapInstance.getZoom()!);
-        const worldPoint = new google.maps.Point(point.x * scale, point.y * scale);
+      if (projection && bounds) {
+        const latLng = new google.maps.LatLng(center.lat - 10, center.lng);
+        const point = projection.fromLatLngToPoint(latLng);
+        const topRight = projection.fromLatLngToPoint(bounds.getNorthEast());
+        const bottomLeft = projection.fromLatLngToPoint(bounds.getSouthWest());
         
-        const container = mapInstance.getDiv();
-        const containerBounds = container.getBoundingClientRect();
-        
-        const x = ((worldPoint.x - bottomLeft.x * scale) / ((topRight.x - bottomLeft.x) * scale)) * containerBounds.width;
-        const y = ((worldPoint.y - topRight.y * scale) / ((bottomLeft.y - topRight.y) * scale)) * containerBounds.height;
-        
-        return (
-          <>
-            <div 
-              className="fixed inset-0 z-40"
-              onClick={() => setInfoOpen(false)}
-            />
-            <div 
-              className="absolute z-50 bg-white rounded-lg shadow-lg border-2 border-gray-300 p-3 w-[140px]"
-              style={{
-                left: `${x}px`,
-                top: `${y - 60}px`,
-                transform: 'translate(-50%, -100%)',
-              }}
-            >
-              <div className="text-sm text-black font-semibold mb-2">
-                {title}
-              </div>
-              <button
-                onClick={onClick}
-                className="bg-green-500 text-black px-3 py-1 rounded text-xs font-medium hover:bg-green-600 transition w-full"
+        if (point && topRight && bottomLeft) {
+          const scale = Math.pow(2, mapInstance.getZoom()!);
+          const worldPoint = new google.maps.Point(point.x * scale, point.y * scale);
+          
+          const container = mapInstance.getDiv();
+          const containerBounds = container.getBoundingClientRect();
+          
+          const x = ((worldPoint.x - bottomLeft.x * scale) / ((topRight.x - bottomLeft.x) * scale)) * containerBounds.width;
+          const y = ((worldPoint.y - topRight.y * scale) / ((bottomLeft.y - topRight.y) * scale)) * containerBounds.height;
+          
+          return (
+            <>
+              <div 
+                className="fixed inset-0 z-40"
+                onClick={() => setInfoOpen(false)}
+              />
+              <div 
+                className="absolute z-50 bg-white rounded-lg shadow-lg border-2 border-gray-300 p-3 w-[140px]"
+                style={{
+                  left: `${x}px`,
+                  top: `${y - 60}px`,
+                  transform: 'translate(-50%, -100%)',
+                }}
               >
-                Zoom In
-              </button>
-            </div>
-          </>
-        );
+                <div className="text-sm text-black font-semibold mb-2">
+                  {title}
+                </div>
+                <button
+                  onClick={onClick}
+                  className="bg-green-500 text-black px-3 py-1 rounded text-xs font-medium hover:bg-green-600 transition w-full"
+                >
+                  Zoom In
+                </button>
+              </div>
+            </>
+          );
+        }
       }
     }
-  }
-  return null;
-};
+    return null;
+  }, [anyForestClicked, mapInstance]);
 
-  const formatNumber = (num: number) => {
+  const formatNumber = useCallback((num: number) => {
     return new Intl.NumberFormat().format(Math.round(num));
-  };
+  }, []);
 
-  if (loadError) return <div>Map failed to load</div>;
-  if (!isLoaded) return <div>Loading map...</div>;
+  // Add these logs
+  console.log('isLoaded:', isLoaded);
+  console.log('loadError:', loadError);
+
+  // NOW handle conditional returns AFTER all hooks are called
+  if (loadError) {
+    console.error('Load error details:', loadError);
+    return <div>Map failed to load: {loadError.message}</div>;
+  }
+
+  if (!isLoaded) {
+    console.log('Still loading...');
+    return <div>Loading map...</div>;
+  }
 
   return (
     <div className="relative w-full h-screen">
@@ -569,7 +567,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
                     </div>
                   </div>
 
-
                   <div className="bg-green-950/20 border border-green-500/30 p-2 rounded-lg">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-300 text-sm">Yearly Change</span>
@@ -681,7 +678,6 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
         </button>
       )}
 
-      
       {!anyForestClicked && (
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50">
           <div className="bg-green-950/30 border border-green-500/30 backdrop-blur-sm rounded-lg px-4 py-2 flex items-center space-x-2">
@@ -694,8 +690,15 @@ const createInfoCard = (center: any, infoOpen: boolean, setInfoOpen: any, onClic
           </div>
         </div>
       )}
-
-
     </div>
   );
 }
+
+// Add the missing forestPolygonOptions constant
+const forestPolygonOptions = {
+  fillColor: '#ff7b0020',
+  fillOpacity: 0.3,
+  strokeColor: '#aa3e00ff',
+  strokeOpacity: 0.8,
+  strokeWeight: 2,
+};
