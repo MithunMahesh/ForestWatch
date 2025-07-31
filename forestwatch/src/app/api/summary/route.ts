@@ -278,13 +278,11 @@ function getHansenData(forestRaw: string, yearRaw: string) {
   const yearEntry = forestData[yearStr];
   if (!yearEntry) return null;
 
-
   let cumulativeArea = 0;
   for (let y = 2001; y <= yearNum; y++) {
     const entry = forestData[y.toString()];
     if (entry) cumulativeArea += entry.area;
   }
-
 
   let yearlyChange = 0;
   const prevEntry = forestData[(yearNum - 1).toString()];
@@ -322,6 +320,43 @@ async function retryWithBackoff<T>(
     }
   }
   throw new Error('Max retries exceeded');
+}
+
+async function callGemini(prompt: string): Promise<string> {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('Gemini API key not configured');
+  }
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 1000,
+          topP: 0.8,
+          topK: 10,
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error: any = new Error(`Gemini API error: ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+
+  const data = await response.json();
+  const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+  if (!content) {
+    throw new Error('No content received from Gemini');
+  }
+  return content;
 }
 
 async function callGroq(prompt: string): Promise<string> {
@@ -478,6 +513,11 @@ Respond ONLY with this JSON format:
 
   const providers = [
     {
+      name: 'Gemini Pro',
+      fn: () => callGemini(prompt),
+      available: !!process.env.GEMINI_API_KEY
+    },
+    {
       name: 'Groq (Llama)',
       fn: () => callGroq(prompt),
       available: !!process.env.GROQ_API_KEY
@@ -521,7 +561,6 @@ Respond ONLY with this JSON format:
     }
   }
 
-  // Fallback if all AI providers fail
   const footballFields = Math.round(hansenData.area * 143);
   const carEquivalent = Math.round(hansenData.carbonLoss * 0.22);
 
