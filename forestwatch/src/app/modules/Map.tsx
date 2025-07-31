@@ -221,6 +221,8 @@ export default function MapView({
     maxZoom: 3,
     draggable: false,
     scrollwheel: false,
+    keyboardShortcuts: false,
+    disableDefaultUI: true,
     disableDoubleClickZoom: true,
     zoomControl: false,
     panControl: false,
