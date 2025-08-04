@@ -71,7 +71,7 @@ forestwatch/
 │   │   └── summary/         # AI-powered deforestation analysis endpoint
 │   ├── components/
 │   │   └── MapView.tsx      # Main interactive map component
-│   └── page.tsx             # Homepage
+│   └── page.tsx             # Landing page
 ├── public/
 │   └── hansen-forest-images/ # Pre-processed satellite imagery
 └── README.md
@@ -98,9 +98,3 @@ This project uses the Hansen Global Forest Change dataset (v1.12, 2024), which p
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Acknowledgments
-
-- Hansen/UMD/Google/USGS/NASA for the Global Forest Change dataset
-- Google Earth Engine for data processing capabilities
-- All the AI providers for analysis capabilities
